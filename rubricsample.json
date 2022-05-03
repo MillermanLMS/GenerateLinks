@@ -1,0 +1,28 @@
+{
+  "rubric": [
+    {
+      "description": "Custom theme works",
+      "score": 1
+    },
+    {
+      "description": "Input and buttons converted and working correctly",
+      "score": 1
+    },
+    {
+      "description": "Dialog opens and contains the correct content",
+      "score": 2
+    },
+    {
+      "description": "Buttons work correctly in the dialog, adding content correctly",
+      "score": 2
+    },
+    {
+      "description": "Card component implemented correctly",
+      "score": 2
+    },
+    {
+      "description": "Additional material components added and working correctly",
+      "score": 2
+    }
+  ]
+}
