@@ -1,0 +1,44 @@
+<div id="github-wrapper" class="wrapper">
+  <label>
+    <span>https://github.com/</span>
+    <input
+      [ngModel]="githubLink$ | async"
+      (ngModelChange)="inputGithub($event)"
+      placeholder="amillerman01/assignmentrepolink"
+    />
+  </label>
+</div>
+<div id="stackblitz-wrapper" class="wrapper">
+  <label>
+    <span>Stackblitz Link:</span>
+    <input
+      disabled
+      class="highlight-on-click"
+      [value]="stackblitzLink$ | async"
+    />
+    <a [href]="stackblitzLink$ | async" target="_blank">
+      <mat-icon>open_in_new</mat-icon>
+    </a>
+  </label>
+</div>
+
+<table mat-table [dataSource]="tableValues">
+  <ng-container matColumnDef="rubricDescription">
+    <mat-header-cell mat-header-cell *matHeaderCellDef>
+      Rubric description
+    </mat-header-cell>
+    <mat-cell mat-cell *matCellDef="let row">
+      {{ row.rubric.description }}
+    </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="rubricScore">
+    <mat-header-cell mat-header-cell *matHeaderCellDef>
+      Rubric Score
+    </mat-header-cell>
+    <mat-cell mat-cell *matCellDef="let row">
+      {{ row.rubric.score }}
+    </mat-cell>
+  </ng-container>
+  <mat-header-row *matHeaderRowDef="displayedColumns"> </mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
+</table>
