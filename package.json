@@ -9,5 +9,8 @@
   "devDependencies": {
     "@parcel/transformer-sass": "^2.5.0",
     "parcel": "^2.5.0"
+  },
+  "dependencies": {
+    "material-components-web": "^14.0.0"
   }
 }

@@ -1,8 +1,30 @@
-html{
-    margin: 0;
+$labelChildElementPadding: 12px;
 
-    body{
-        margin: 0;
-        padding: 0;
+html {
+  margin: 0;
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+.wrapper {
+  margin: 8px;
+  padding: 8px;
+
+  label {
+    display: flex;
+    flex-direction: row;
+    margin: 8px 0;
+
+    span {
+      display: inline-block;
+      padding: $labelChildElementPadding;
     }
+    input {
+      flex-grow: 1;
+      padding: $labelChildElementPadding;
+    }
+  }
 }
