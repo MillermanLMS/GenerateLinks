@@ -14,6 +14,10 @@
       <mat-icon matSuffix>open_in_new</mat-icon>
     </a>
   </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>Final Mark</mat-label>
+    <input matInput [value]="overallScore$ | async">
+  </mat-form-field>
 </div>
 
 <mat-table *ngIf="tableValues$ | async as tableValues" [dataSource]="tableValues" multiTemplateDataRows
@@ -38,7 +42,7 @@
   </ng-container>
   <!-- Expanded Content Column - The detail row is made up of this one column that spans across all columns -->
   <ng-container matColumnDef="expandedDetail">
-    <mat-cell *matCellDef="let row" [attr.colspan]="displayedColumns.length">
+    <mat-cell class="element-big-cell" *matCellDef="let row" [attr.colspan]="displayedColumns.length">
       <div fxLayout="column" fxLayoutAlign="start stretch" class="element-detail"
         [@detailExpand]="row == expandedElement ? 'expanded' : 'collapsed'">
         <!-- main expansion code in here -->
@@ -54,17 +58,17 @@
             </mat-checkbox>
           </div>
         </ng-container>
-        <div>
-          <mat-form-field appearance="outline">
+        <div fxLayout="row" fxLayoutAlign="center center" class="feedback-creation">
+          <mat-form-field fxFlex="70%" appearance="outline">
             <mat-label>Feedback</mat-label>
             <input matInput #feedback placeholder="feedback goes here">
           </mat-form-field>
-          <mat-form-field appearance="outline">
+          <mat-form-field fxFlex="15%" appearance="outline">
             <mat-label>Deduction</mat-label>
-            <input matInput #deduction type="number" placeholder="1">
+            <input matInput #deduction type="number" placeholder="0.5">
           </mat-form-field>
 
-          <button mat-raised-button (click)="addFeedback(row, feedback.value, deduction.value)">Add
+          <button fxFlex="15%" mat-raised-button (click)="addFeedback(row, feedback.value, deduction.value)">Add
             Feedback</button>
         </div>
       </div>

@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import rubric from '../assets/rubricSample.json';
 import { Feedback, MarkingFeedback } from './models';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer } from '@angular/platform-browser';
 
 
 @Component({
@@ -21,6 +21,7 @@ export class AppComponent {
   githubLink$ = new BehaviorSubject<string>('');
   stackblitzLink$ = new BehaviorSubject<string>('#');
   tableValues$: BehaviorSubject<MarkingFeedback[]>;
+  overallScore$: BehaviorSubject<number>;
   tableValuesJSON: any;
   expandedElement: any;
   displayedColumns: any[] = [{
@@ -48,6 +49,8 @@ export class AppComponent {
     }
     this.tableValues$ = new BehaviorSubject<MarkingFeedback[]>(markingFeedback);
     this.generateTableJSON();
+    this.overallScore$ = new BehaviorSubject<number>((markingFeedback as MarkingFeedback[])
+      .map(mf => mf.rubric.score).reduce((v, a) => v + a, 0));
   }
 
   // bind so that clicking input highlights it
@@ -69,6 +72,7 @@ export class AppComponent {
   toggleDeduction(row: any, feedback: Feedback): void {
     let mfl = [...this.tableValues$.value];
     mfl[row.id].pointsAwarded = this.calculateRubricItemScore(mfl[row.id].rubric.score, mfl[row.id].feedbackList);
+    this.overallScore$.next(mfl.map(mf => mf.pointsAwarded || 0).reduce((v, a) => v + a, 0));
     this.tableValues$.next(
       [...mfl]
     );
@@ -84,7 +88,7 @@ export class AppComponent {
   addFeedback(row: any, feedback: string, deduction: string) {
     let mfl = [...this.tableValues$.value];
     mfl[row.id].feedbackList.push({
-      feedback, deduction: (Number(deduction))
+      feedback, deduction: (Number(deduction || "0.5"))
     });
     this.tableValues$.next(
       [...mfl]

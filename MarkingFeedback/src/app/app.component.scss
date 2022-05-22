@@ -41,7 +41,12 @@ mat-row.element-row:not(.expanded-row):active {
   border-bottom-width: 0;
 }
 
+.element-big-cell {
+  width: calc(100vw - 24px);
+}
+
 .element-detail {
   overflow: hidden;
   display: flex;
+  width: calc(100% - 48px);
 }
