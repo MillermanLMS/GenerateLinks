@@ -1,8 +1,10 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component } from '@angular/core';
-import { BehaviorSubject, ReplaySubject } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import rubric from '../assets/rubricSample.json';
-import { Feedback, MarkingFeedback, Rubric } from './models';
+import { Feedback, MarkingFeedback } from './models';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+
 
 @Component({
   selector: 'app-root',
@@ -19,6 +21,7 @@ export class AppComponent {
   githubLink$ = new BehaviorSubject<string>('');
   stackblitzLink$ = new BehaviorSubject<string>('#');
   tableValues$: BehaviorSubject<MarkingFeedback[]>;
+  tableValuesJSON: any;
   expandedElement: any;
   displayedColumns: any[] = [{
     matColumnDef: 'rubricDescription',
@@ -31,10 +34,10 @@ export class AppComponent {
     header: 'Points Awarded'
   }];
 
-  constructor() {
+  constructor(private sanitizer: DomSanitizer) {
     console.log(rubric);
     let markingFeedback = JSON.parse(localStorage.getItem("model") || "{}");
-    if (markingFeedback != "") {
+    if (markingFeedback.length == 0) {
       markingFeedback = (rubric.markingFeedbackList as MarkingFeedback[]).map((mf, index) => {
         return { ...mf, pointsAwarded: mf.rubric.score, id: index };
       });
@@ -44,6 +47,7 @@ export class AppComponent {
       console.log("Local storage loaded: ", markingFeedback);
     }
     this.tableValues$ = new BehaviorSubject<MarkingFeedback[]>(markingFeedback);
+    this.generateTableJSON();
   }
 
   // bind so that clicking input highlights it
@@ -85,6 +89,7 @@ export class AppComponent {
     this.tableValues$.next(
       [...mfl]
     );
+    this.saveJSON();
   }
 
   removeFeedback(row: any, index: number) {
@@ -94,11 +99,17 @@ export class AppComponent {
     this.tableValues$.next(
       [...mfl]
     );
+    this.saveJSON();
   }
 
   saveJSON(): void {
     localStorage.setItem("model", JSON.stringify(this.tableValues$.value));
     console.log("Saved Marking Feedback: ", this.tableValues$.value);
+    this.generateTableJSON();
+  }
+
+  generateTableJSON() {
+    this.tableValuesJSON = this.sanitizer.bypassSecurityTrustResourceUrl("data:application/json;charset=UTF-8," + encodeURIComponent(JSON.stringify(this.tableValues$.value)));
   }
 
   generateTable() {
