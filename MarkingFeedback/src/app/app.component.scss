@@ -1,20 +1,47 @@
-$labelChildElementPadding: 12px;
-.wrapper {
-  margin: 8px;
-  padding: 8px;
+a {
+  cursor: pointer;
+}
 
-  label {
-    display: flex;
-    flex-direction: row;
-    margin: 8px 0;
+.mat-column-rubricDescription {}
 
-    span {
-      display: inline-block;
-      padding: $labelChildElementPadding;
-    }
-    input {
-      flex-grow: 1;
-      padding: $labelChildElementPadding;
-    }
-  }
+.mat-column-rubricScore,
+.deduction {
+  flex: 0 0 15%;
+}
+
+.mat-column-pointsAwarded,
+.toggle-button {
+  flex: 0 0 15%;
+}
+
+.feedback-wrapper {
+  height: 48px;
+  align-items: center;
+}
+
+.applied {
+  background-color: #555;
+}
+
+mat-row.detail-row {
+  height: 0;
+  min-height: 0;
+  display: table-row;
+}
+
+mat-row.element-row:not(.expanded-row):hover {
+  background: whitesmoke;
+}
+
+mat-row.element-row:not(.expanded-row):active {
+  background: #efefef;
+}
+
+.element-row mat-cell {
+  border-bottom-width: 0;
+}
+
+.element-detail {
+  overflow: hidden;
+  display: flex;
 }

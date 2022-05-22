@@ -1,44 +1,79 @@
-<div id="github-wrapper" class="wrapper">
-  <label>
-    <span>https://github.com/</span>
-    <input
-      [ngModel]="githubLink$ | async"
-      (ngModelChange)="inputGithub($event)"
-      placeholder="amillerman01/assignmentrepolink"
-    />
-  </label>
-</div>
-<div id="stackblitz-wrapper" class="wrapper">
-  <label>
-    <span>Stackblitz Link:</span>
-    <input
-      disabled
-      class="highlight-on-click"
-      [value]="stackblitzLink$ | async"
-    />
+<div fxLayout="row" fxLayoutAlign="space-between">
+  <mat-form-field appearance="outline">
+    <mat-label>GitHub</mat-label>
+    <input matInput [ngModel]="githubLink$ | async" (ngModelChange)="inputGithub($event)"
+      placeholder="https://github.com/amillerman01/assignmentrepolink">
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Stackblitz</mat-label>
+    <input matInput class="highlight-on-click" [value]="stackblitzLink$ | async"
+      placeholder="https://github.com/amillerman01/assignmentrepolink">
     <a [href]="stackblitzLink$ | async" target="_blank">
-      <mat-icon>open_in_new</mat-icon>
+      <mat-icon matSuffix>open_in_new</mat-icon>
     </a>
-  </label>
+  </mat-form-field>
 </div>
 
-<table mat-table [dataSource]="tableValues">
-  <ng-container matColumnDef="rubricDescription">
+<mat-table *ngIf="tableValues$ | async as tableValues" [dataSource]="tableValues" multiTemplateDataRows
+  class="mat-elevation-z8">
+  <ng-container [matColumnDef]="column.matColumnDef" *ngFor="let column of displayedColumns; index as i">
     <mat-header-cell mat-header-cell *matHeaderCellDef>
-      Rubric description
+      {{ column.header }}
     </mat-header-cell>
     <mat-cell mat-cell *matCellDef="let row">
-      {{ row.rubric.description }}
+      <ng-container [ngSwitch]="true">
+        <span *ngSwitchCase="i === 0">
+          {{row.rubric.description }}
+        </span>
+        <span *ngSwitchCase="i === 1">
+          {{ row.rubric.score }}
+        </span>
+        <span *ngSwitchCase="i === 2">
+          {{ row.pointsAwarded || "0" }}
+        </span>
+      </ng-container>
     </mat-cell>
   </ng-container>
-  <ng-container matColumnDef="rubricScore">
-    <mat-header-cell mat-header-cell *matHeaderCellDef>
-      Rubric Score
-    </mat-header-cell>
-    <mat-cell mat-cell *matCellDef="let row">
-      {{ row.rubric.score }}
+  <!-- Expanded Content Column - The detail row is made up of this one column that spans across all columns -->
+  <ng-container matColumnDef="expandedDetail">
+    <mat-cell *matCellDef="let row" [attr.colspan]="displayedColumns.length">
+      <div fxLayout="column" fxLayoutAlign="start stretch" class="element-detail"
+        [@detailExpand]="row == expandedElement ? 'expanded' : 'collapsed'">
+        <!-- main expansion code in here -->
+        <ng-container *ngFor="let feedback of row.feedbackList; index as i">
+          <div [class.applied]="feedback.applied" fxLayout="row" class="feedback-wrapper">
+            <span fxFlex="70%" class="feedback">
+              <a (click)="removeFeedback(row, i)">(x) </a>
+              {{ feedback.feedback}}
+            </span>
+            <span fxFlex="15%" class="deduction">{{ feedback.deduction}}</span>
+            <mat-checkbox fxFlex="15%" class="toggle-button" [(ngModel)]="feedback.applied"
+              (ngModelChange)="toggleDeduction(row, feedback)">
+            </mat-checkbox>
+          </div>
+        </ng-container>
+        <div>
+          <mat-form-field appearance="outline">
+            <mat-label>Feedback</mat-label>
+            <input matInput #feedback placeholder="feedback goes here">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Deduction</mat-label>
+            <input matInput #deduction type="number" placeholder="1">
+          </mat-form-field>
+
+          <button mat-raised-button (click)="addFeedback(row, feedback.value, deduction.value)">Add
+            Feedback</button>
+        </div>
+      </div>
     </mat-cell>
   </ng-container>
-  <mat-header-row *matHeaderRowDef="displayedColumns"> </mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
-</table>
+
+
+  <mat-header-row *matHeaderRowDef=" displayedColumns | columns"> </mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns | columns" class="element-row"
+    [class.expanded-row]="expandedElement === row" (click)="expandedElement = expandedElement === row ? null : row">
+  </mat-row>
+  <mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></mat-row>
+</mat-table>

@@ -3,11 +3,13 @@ export interface Rubric {
   score: number;
 }
 export interface Feedback {
-  text: string;
+  feedback: string;
   deduction: number;
-  element: HTMLDivElement;
+  applied?: boolean;
 }
 export interface MarkingFeedback {
+  id?: number;
   rubric: Rubric;
-  feedback: Feedback[];
+  feedbackList: Feedback[];
+  pointsAwarded?: number;
 }
