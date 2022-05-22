@@ -4,7 +4,7 @@ import { BehaviorSubject } from 'rxjs';
 import rubric from '../assets/rubricSample.json';
 import { Feedback, MarkingFeedback } from './models';
 import { DomSanitizer } from '@angular/platform-browser';
-
+// TODO: make a json file with all the users username and github accounts, so I can make their feedback files easier and import them quickly
 
 @Component({
   selector: 'app-root',
@@ -116,7 +116,9 @@ export class AppComponent {
     this.tableValuesJSON = this.sanitizer.bypassSecurityTrustResourceUrl("data:application/json;charset=UTF-8," + encodeURIComponent(JSON.stringify(this.tableValues$.value)));
   }
 
-  generateTable() {
+  generateStudentFriendlyTable() {
     // TODO: generate table based on this.tableValues
+    // save it to localstorage too with their username
+    // save the individual users tablevaluesjson in localstorage/json too, so I can easily update it if needed
   }
 }
