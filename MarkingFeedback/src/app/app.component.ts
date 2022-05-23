@@ -93,23 +93,24 @@ export class AppComponent {
     this.tableValues$.next(
       [...mfl]
     );
-    this.saveJSON();
   }
 
   removeFeedback(row: any, index: number) {
+    // event.stopPropogation();
+    console.log("remove");
     let mfl = [...this.tableValues$.value];
     mfl[row.id].feedbackList.splice(index, 1);
     mfl[row.id].pointsAwarded = this.calculateRubricItemScore(mfl[row.id].rubric.score, mfl[row.id].feedbackList);
     this.tableValues$.next(
       [...mfl]
     );
-    this.saveJSON();
   }
 
   saveJSON(): void {
     localStorage.setItem("model", JSON.stringify(this.tableValues$.value));
     console.log("Saved Marking Feedback: ", this.tableValues$.value);
     this.generateTableJSON();
+    // TODO: add snackbar message
   }
 
   generateTableJSON() {
