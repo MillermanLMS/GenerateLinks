@@ -50,15 +50,14 @@
         [@detailExpand]="row == expandedElement ? 'expanded' : 'collapsed'">
         <!-- main expansion code in here -->
         <ng-container *ngFor="let feedback of row.feedbackList; index as i">
-          <div (click)="feedback.applied = !feedback.applied" [class.applied]="feedback.applied" fxLayout="row"
-            class="feedback-wrapper">
+          <div [class.applied]="feedback.applied" fxLayout="row" class="feedback-wrapper">
             <span fxFlex="70%" class="feedback">
               <a (click)="removeFeedback(row, i); $event.stopPropagation();">(x) </a>
               {{ feedback.feedback}}
             </span>
             <span fxFlex="15%" class="deduction">{{ feedback.deduction}}</span>
             <mat-checkbox fxFlex="15%" class="toggle-button" [(ngModel)]="feedback.applied"
-              (ngModelChange)="toggleDeduction(row, feedback)">
+              (ngModelChange)="toggleDeduction(row)">
             </mat-checkbox>
           </div>
         </ng-container>
@@ -86,3 +85,6 @@
   </mat-row>
   <mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></mat-row>
 </mat-table>
+<br><br>
+<div [innerHTML]="outputTable$ | async">&nbsp;</div>
+<!-- <button mat-raised-button (click)="copyTable()">Copy to Clipboard</button> -->

@@ -14,6 +14,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { ColumnsPipe } from './columns.pipe';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+
 
 
 @NgModule({
@@ -29,7 +31,8 @@ import { ColumnsPipe } from './columns.pipe';
     MatInputModule,
     FlexLayoutModule,
     MatButtonModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    ClipboardModule
   ],
   providers: [],
   bootstrap: [AppComponent],

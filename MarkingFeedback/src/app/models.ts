@@ -1,6 +1,7 @@
 export interface Rubric {
   description: string;
   score: number;
+  type?: string;
 }
 export interface Feedback {
   feedback: string;
