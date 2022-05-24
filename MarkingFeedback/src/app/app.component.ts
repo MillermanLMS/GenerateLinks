@@ -40,7 +40,7 @@ export class AppComponent {
 
   constructor(private sanitizer: DomSanitizer, private clipboard: Clipboard) {
     console.log(rubric);
-    let markingFeedback = JSON.parse(localStorage.getItem("model") || "{}");
+    let markingFeedback = JSON.parse(localStorage.getItem("model") || "[]");
     if (markingFeedback.length == 0) { // didn't get it from local storage
       markingFeedback = (rubric.markingFeedbackList as MarkingFeedback[]).map((mf, index) => {
         return { ...mf, pointsAwarded: mf.rubric.score, id: index };
