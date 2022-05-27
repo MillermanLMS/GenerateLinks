@@ -13,4 +13,5 @@ export interface MarkingFeedback {
   rubric: Rubric;
   feedbackList: Feedback[];
   pointsAwarded?: number;
+  bonus?: boolean;
 }

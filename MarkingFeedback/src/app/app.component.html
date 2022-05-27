@@ -3,13 +3,16 @@
   <button mat-raised-button (click)="saveJSON()">Save local storage</button>
 </div>
 <div fxLayout="row" fxLayoutAlign="center center">
-  <mat-form-field fxFlex="40%" appearance="outline">
+  <mat-form-field fxFlex="35%" appearance="outline">
     <mat-label>GitHub</mat-label>
     <input matInput [ngModel]="githubLink$ | async" (ngModelChange)="inputGithub($event)"
       placeholder="https://github.com/amillerman01/assignmentrepolink">
   </mat-form-field>
+  <a fxFlex="5%" [href]="githubLink$ | async" target="_blank">
+    <mat-icon matSuffix>open_in_new</mat-icon>
+  </a>
   <!-- TODO: Add a dropdown to select users github accounts from, associating username and github accounts -->
-  <mat-form-field fxFlex="40%" appearance="outline">
+  <mat-form-field fxFlex="35%" appearance="outline">
     <mat-label>Stackblitz</mat-label>
     <input matInput class="highlight-on-click" [value]="stackblitzLink$ | async"
       placeholder="https://github.com/amillerman01/assignmentrepolink">
@@ -17,10 +20,13 @@
   <a fxFlex="5%" [href]="stackblitzLink$ | async" target="_blank">
     <mat-icon matSuffix>open_in_new</mat-icon>
   </a>
-  <mat-form-field fxFlex="15%" appearance="outline">
+  <mat-form-field fxFlex="10%" appearance="outline">
     <mat-label>Final Mark</mat-label>
     <input matInput [value]="overallScore$ | async">
   </mat-form-field>
+  <mat-checkbox fxFlex="10%" class="toggle-button" [ngModel]="triedBonus$ | async"
+    (ngModelChange)="toggleBonus($event)">
+  </mat-checkbox>
 </div>
 
 <mat-table *ngIf="tableValues$ | async as tableValues" [dataSource]="tableValues" multiTemplateDataRows
@@ -56,7 +62,7 @@
               {{ feedback.feedback}}
             </span>
             <span fxFlex="15%" class="deduction">{{ feedback.deduction}}</span>
-            <mat-checkbox fxFlex="15%" class="toggle-button" [(ngModel)]="feedback.applied"
+            <mat-checkbox fxFlex="15%" class="toggle-button" [ngModel]="feedback.applied"
               (ngModelChange)="toggleDeduction(row)">
             </mat-checkbox>
           </div>
