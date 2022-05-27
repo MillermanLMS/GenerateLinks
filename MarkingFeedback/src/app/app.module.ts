@@ -16,9 +16,11 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { ColumnsPipe } from './columns.pipe';
 import { ClipboardModule } from '@angular/cdk/clipboard';
+import { HttpClientModule } from '@angular/common/http';
+import { MarkingFeedbackComponent } from './marking-feedback/marking-feedback.component';
 
 @NgModule({
-  declarations: [AppComponent, ColumnsPipe],
+  declarations: [AppComponent, ColumnsPipe, MarkingFeedbackComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -33,8 +35,9 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
     MatCheckboxModule,
     ClipboardModule,
     MatSnackBarModule,
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule { }
