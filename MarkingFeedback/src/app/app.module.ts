@@ -12,11 +12,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { ColumnsPipe } from './columns.pipe';
 import { ClipboardModule } from '@angular/cdk/clipboard';
-
-
 
 @NgModule({
   declarations: [AppComponent, ColumnsPipe],
@@ -32,9 +31,10 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
     FlexLayoutModule,
     MatButtonModule,
     MatCheckboxModule,
-    ClipboardModule
+    ClipboardModule,
+    MatSnackBarModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

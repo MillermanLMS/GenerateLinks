@@ -1,6 +1,14 @@
 <div fxLayout="row" fxLayoutAlign="space-between">
-  <a [href]="tableValuesJSON" download="stuff.json">Click to save JSON</a>
-  <button mat-raised-button (click)="saveJSON()">Save local storage</button>
+  <ng-container *ngIf="tableValuesJSON$ | async as tableValuesJSON">
+    <a mat-raised-button [href]="tableValuesJSON[0]" download="stuff.json">Click to save JSON</a>
+    <button mat-raised-button (click)="saveJSON()">Save local storage</button>
+    <a mat-raised-button [href]="tableValuesJSON[1]" [disabled]="!(githubLink$ | async)" download="stuff.json">
+      Click to save JSON
+    </a>
+    <button mat-raised-button (click)="saveUserLocalStorage()" [disabled]="!(githubLink$ | async)">
+      Save User Feedback
+    </button>
+  </ng-container>
 </div>
 <div fxLayout="row" fxLayoutAlign="center center">
   <mat-form-field fxFlex="35%" appearance="outline">
@@ -62,7 +70,7 @@
               {{ feedback.feedback}}
             </span>
             <span fxFlex="15%" class="deduction">{{ feedback.deduction}}</span>
-            <mat-checkbox fxFlex="15%" class="toggle-button" [ngModel]="feedback.applied"
+            <mat-checkbox fxFlex="15%" class="toggle-button" [(ngModel)]="feedback.applied"
               (ngModelChange)="toggleDeduction(row)">
             </mat-checkbox>
           </div>

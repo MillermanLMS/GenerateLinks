@@ -11,7 +11,7 @@ import rubric from '../assets/WEB601As1.json';
 import { Feedback, MarkingFeedback } from './models';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Clipboard } from '@angular/cdk/clipboard';
-import { mergeAlias } from '@angular/flex-layout';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 // TODO: make a json file with all the users username and github accounts, so I can make their feedback files easier and import them quickly
 
@@ -36,7 +36,7 @@ export class AppComponent {
   tableValues$: BehaviorSubject<MarkingFeedback[]>;
   overallScore$: BehaviorSubject<number>;
   outputTable$ = new BehaviorSubject<string>('');
-  tableValuesJSON: any;
+  tableValuesJSON$ = new BehaviorSubject<[string, string]>(['', '']);
   expandedElement: any;
   triedBonus$ = new BehaviorSubject<boolean>(false);
   displayedColumns: any[] = [
@@ -54,7 +54,11 @@ export class AppComponent {
     },
   ];
 
-  constructor(private sanitizer: DomSanitizer, private clipboard: Clipboard) {
+  constructor(
+    private sanitizer: DomSanitizer,
+    private clipboard: Clipboard,
+    private snackBar: MatSnackBar
+  ) {
     console.log(rubric);
     let markingFeedback = JSON.parse(localStorage.getItem('model') || '[]');
     if (markingFeedback.length == 0) {
@@ -70,21 +74,21 @@ export class AppComponent {
     this.tableValues$ = new BehaviorSubject<MarkingFeedback[]>(markingFeedback);
     this.generateTableJSON();
     this.overallScore$ = new BehaviorSubject<number>(
-      (markingFeedback as MarkingFeedback[])
-        .map((mf) => mf.pointsAwarded || 0)
-        .reduce((v, a) => v + a, 0)
+      this.updateScore(markingFeedback as MarkingFeedback[])
     );
     this.generateStudentFriendlyTable();
   }
 
   toggleBonus(eventData: boolean) {
     this.triedBonus$.next(eventData);
+    this.overallScore$.next(this.updateScore());
     this.generateStudentFriendlyTable();
   }
   // bind so that clicking input highlights it
   // document.querySelectorAll(".highlight-on-click").forEach()
   inputGithub(value: string): void {
     this.githubLink$.next(value);
+    this.generateTableJSON();
     this.generateStackblitzLink();
   }
 
@@ -103,11 +107,19 @@ export class AppComponent {
       mfl[row.id].rubric.score,
       mfl[row.id].feedbackList
     );
-    this.overallScore$.next(
-      mfl.map((mf) => mf.pointsAwarded || 0).reduce((v, a) => v + a, 0)
-    );
+    this.overallScore$.next(this.updateScore(mfl));
     this.tableValues$.next([...mfl]);
     this.generateStudentFriendlyTable();
+  }
+
+  updateScore(mfl?: MarkingFeedback[]): number {
+    return (mfl || this.tableValues$.value)
+      .map((mf) =>
+        !mf.bonus || (mf.bonus && this.triedBonus$.value)
+          ? mf.pointsAwarded || 0
+          : 0
+      )
+      .reduce((v, a) => v + a, 0);
   }
 
   calculateRubricItemScore(
@@ -144,9 +156,7 @@ export class AppComponent {
       mfl[row.id].rubric.score,
       mfl[row.id].feedbackList
     );
-    this.overallScore$.next(
-      mfl.map((mf) => mf.pointsAwarded || 0).reduce((v, a) => v + a, 0)
-    );
+    this.overallScore$.next(this.updateScore(mfl));
     this.tableValues$.next([...mfl]);
     this.generateStudentFriendlyTable();
   }
@@ -160,10 +170,26 @@ export class AppComponent {
   }
 
   generateTableJSON(): void {
-    this.tableValuesJSON = this.sanitizer.bypassSecurityTrustResourceUrl(
-      'data:application/json;charset=UTF-8,' +
-        encodeURIComponent(JSON.stringify(this.tableValues$.value))
-    );
+    let returnValue = '';
+    if (this.githubLink$.value) {
+      let regex = /https:\/\/github.com\/(\w*)\/.+\/tree\/(.*)\/*.*/;
+      let studentFeedbackString = this.githubLink$.value.match(
+        regex
+      ) as RegExpMatchArray;
+      returnValue = `${studentFeedbackString[1]}_${studentFeedbackString[2]}`;
+    }
+    this.tableValuesJSON$.next([
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'data:application/json;charset=UTF-8,' +
+          encodeURIComponent(JSON.stringify(this.tableValues$.value))
+      ) as string,
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'data:application/json;charset=UTF-8,' +
+          encodeURIComponent(
+            JSON.stringify({ [returnValue]: this.tableValues$.value })
+          )
+      ) as string,
+    ]);
   }
 
   generateStudentFriendlyTable(): void {
@@ -199,5 +225,20 @@ export class AppComponent {
   }
   copyTable(): void {
     this.clipboard.copy(this.outputTable$.value as string);
+  }
+
+  saveUserLocalStorage(): void {
+    let regex = /https:\/\/github.com\/(\w*)\/.+\/tree\/(.*)\/*.*/;
+    let studentFeedbackString = this.githubLink$.value.match(regex);
+    // console.log(this.githubLink$.value.match(regex));
+    if (studentFeedbackString && studentFeedbackString.length > 2) {
+      localStorage.setItem(
+        studentFeedbackString[1],
+        JSON.stringify({ [studentFeedbackString[2]]: this.tableValues$.value })
+      );
+      this.snackBar.open(
+        `${studentFeedbackString[1]}_${studentFeedbackString[2]} saved`
+      );
+    }
   }
 }
