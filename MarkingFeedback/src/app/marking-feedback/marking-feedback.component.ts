@@ -73,6 +73,10 @@ export class MarkingFeedbackComponent {
     let markingFeedback = JSON.parse(
       localStorage.getItem(this.fileName) || '[]'
     );
+
+    // TODO: change over to using ngx-indexed-db instead of localstorage for student feedbacks
+    // https://github.com/assuncaocharles/ngx-indexed-db
+
     // didn't get it from local storage
     if (markingFeedback.length === 0) {
       let fileLocation = `assets/${this.fileName}.json`;
