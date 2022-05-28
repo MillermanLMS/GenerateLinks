@@ -1,13 +1,27 @@
 <div fxLayout="row" fxLayoutAlign="space-between">
+  <!-- TODO: add a dropdown of all the previous jsons -->
+  <!-- <mat-form-field appearance="fill">
+    <mat-label>Select an option</mat-label>
+    <mat-select [(value)]="selected">
+      <mat-option>None</mat-option>
+      <mat-option *ngFor="" value="option1">Option 1</mat-option>
+      <mat-option value="option2">Option 2</mat-option>
+      <mat-option value="option3">Option 3</mat-option>
+    </mat-select>
+  </mat-form-field> -->
+
   <ng-container *ngIf="tableValuesJSON$ | async as tableValuesJSON">
-    <a mat-raised-button [href]="tableValuesJSON[0]" download="stuff.json">Click to save JSON</a>
-    <button mat-raised-button (click)="saveJSON()">Save local storage</button>
-    <a mat-raised-button [href]="tableValuesJSON[1]" [disabled]="!(githubLink$ | async)" download="stuff.json">
+    <a mat-raised-button color="primary" [href]="tableValuesJSON[0]" download="stuff.json">Click to save JSON</a>
+    <button mat-raised-button color="primary" (click)="saveJSON()">Save local storage</button>
+    <a mat-raised-button color="primary" [href]="tableValuesJSON[1]" [disabled]="!(githubLink$ | async)"
+      download="stuff.json">
       Click to save JSON
     </a>
-    <button mat-raised-button (click)="saveUserLocalStorage()" [disabled]="!(githubLink$ | async)">
+    <button mat-raised-button color="primary" (click)="saveUserLocalStorage()" [disabled]="!(githubLink$ | async)">
       Save User Feedback
     </button>
+    <button mat-raised-button color="primary" (click)="copyTable()" [disabled]="!(githubLink$ | async)">Copy to
+      Clipboard</button>
   </ng-container>
 </div>
 <div fxLayout="row" fxLayoutAlign="center center">
@@ -66,7 +80,7 @@
         <ng-container *ngFor="let feedback of row.feedbackList; index as i">
           <div [class.applied]="feedback.applied" fxLayout="row" class="feedback-wrapper">
             <span fxFlex="70%" class="feedback">
-              <a (click)="removeFeedback(row, i); $event.stopPropagation();">(x) </a>
+              <a mat-raised-button color="warn" (click)="removeFeedback(row, i); $event.stopPropagation();">x</a>
               {{ feedback.feedback}}
             </span>
             <span fxFlex="15%" class="deduction">{{ feedback.deduction}}</span>
@@ -75,17 +89,18 @@
             </mat-checkbox>
           </div>
         </ng-container>
-        <div fxLayout="row" fxLayoutAlign="center center" class="feedback-creation">
-          <mat-form-field fxFlex="70%" appearance="outline">
+        <div fxLayout="row" fxLayoutAlign="space-between center" class="feedback-creation">
+          <mat-form-field fxFlex="65" appearance="outline">
             <mat-label>Feedback</mat-label>
             <input matInput #feedback placeholder="feedback goes here">
           </mat-form-field>
-          <mat-form-field fxFlex="15%" appearance="outline">
+          <mat-form-field fxFlex="10" appearance="outline">
             <mat-label>Deduction</mat-label>
             <input matInput #deduction type="number" placeholder="0.5">
           </mat-form-field>
 
-          <button fxFlex="15%" mat-raised-button (click)="addFeedback(row, feedback.value, deduction.value)">Add
+          <button fxFlex="15" mat-raised-button color="primary"
+            (click)="addFeedback(row, feedback.value, deduction.value)">Add
             Feedback</button>
         </div>
       </div>
@@ -101,4 +116,3 @@
 </mat-table>
 <br><br>
 <div [innerHTML]="outputTable$ | async">&nbsp;</div>
-<button mat-raised-button (click)="copyTable()">Copy to Clipboard</button>

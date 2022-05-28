@@ -1,8 +1,14 @@
+:host {
+  ::ng-deep .mat-form-field-wrapper {
+    padding-bottom: 0px;
+  }
+}
 a {
   cursor: pointer;
 }
 
-.mat-column-rubricDescription {}
+.mat-column-rubricDescription {
+}
 
 .mat-column-rubricScore,
 .deduction {

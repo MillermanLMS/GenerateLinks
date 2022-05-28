@@ -15,7 +15,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { ColumnsPipe } from './columns.pipe';
-import { ClipboardModule } from '@angular/cdk/clipboard';
+import { MatSelectModule } from '@angular/material/select';
 import { HttpClientModule } from '@angular/common/http';
 import { MarkingFeedbackComponent } from './marking-feedback/marking-feedback.component';
 
@@ -33,11 +33,11 @@ import { MarkingFeedbackComponent } from './marking-feedback/marking-feedback.co
     FlexLayoutModule,
     MatButtonModule,
     MatCheckboxModule,
-    ClipboardModule,
+    MatSelectModule,
     MatSnackBarModule,
-    HttpClientModule
+    HttpClientModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

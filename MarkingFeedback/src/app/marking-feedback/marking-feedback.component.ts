@@ -31,14 +31,16 @@ import { ActivatedRoute } from '@angular/router';
     ]),
   ],
 })
-export class MarkingFeedbackComponent implements OnInit {
+export class MarkingFeedbackComponent {
   githubLink$ = new BehaviorSubject<string>('');
   stackblitzLink$ = new BehaviorSubject<string>('#');
   tableValues$ = new BehaviorSubject<MarkingFeedback[]>([]);
   overallScore$ = new BehaviorSubject<number>(0);
   outputTable$ = new BehaviorSubject<string>('');
   tableValuesJSON$ = new BehaviorSubject<[string, string]>(['', '']);
+  localStorageList$ = new BehaviorSubject<[string, string][]>([['', '']]);
   expandedElement: any;
+  fileName: string;
   triedBonus$ = new BehaviorSubject<boolean>(false);
   displayedColumns: any[] = [
     {
@@ -60,19 +62,22 @@ export class MarkingFeedbackComponent implements OnInit {
     private snackBar: MatSnackBar,
     private http: HttpClient,
     private route: ActivatedRoute
-  ) {}
-
-  ngOnInit(): void {
+  ) {
     console.log(this.route.snapshot.params);
     let className = this.route.snapshot.params['classname'];
     let assignmentNumber = this.route.snapshot.params['assignment'];
-    let fileName = `${className}As${assignmentNumber}.json`;
+    this.fileName = `${className}As${assignmentNumber}`;
 
-    let markingFeedback = JSON.parse(localStorage.getItem(fileName) || '[]');
+    // this.populateLocalStorageDropdown();
+
+    let markingFeedback = JSON.parse(
+      localStorage.getItem(this.fileName) || '[]'
+    );
     // didn't get it from local storage
     if (markingFeedback.length === 0) {
-      this.http.get('assets/' + fileName).subscribe((rubric) => {
-        this.snackBar.open('Loaded from file: assets/' + fileName, 'Dismiss');
+      let fileLocation = `assets/${this.fileName}.json`;
+      this.http.get(fileLocation).subscribe((rubric) => {
+        this.snackBar.open('Loaded from file: ' + fileLocation, 'Dismiss');
         markingFeedback = (
           (rubric as any)['markingFeedbackList'] as MarkingFeedback[]
         ).map((mf, index) => {
@@ -82,7 +87,7 @@ export class MarkingFeedbackComponent implements OnInit {
       });
       return;
     }
-    this.snackBar.open('Local storage loaded: ' + fileName, 'Dismiss');
+    this.snackBar.open('Local storage loaded: ' + this.fileName, 'Dismiss');
     this.init(markingFeedback);
   }
 
@@ -177,11 +182,30 @@ export class MarkingFeedbackComponent implements OnInit {
   }
 
   saveJSON(): void {
-    localStorage.setItem('model', JSON.stringify(this.tableValues$.value));
+    localStorage.setItem(
+      this.fileName,
+      JSON.stringify(this.tableValues$.value)
+    );
     console.log('Saved Marking Feedback: ', this.tableValues$.value);
     this.generateTableJSON();
     this.generateStudentFriendlyTable();
-    // TODO: add snackbar message
+    this.snackBar.open('Local storage loaded: ' + this.fileName, 'Dismiss');
+  }
+
+  saveUserLocalStorage(): void {
+    let regex = /https:\/\/github.com\/(\w*)\/.+\/tree\/(.*)\/*.*/;
+    let studentFeedbackString = this.githubLink$.value.match(regex);
+    // console.log(this.githubLink$.value.match(regex));
+    if (studentFeedbackString && studentFeedbackString.length > 2) {
+      localStorage.setItem(
+        studentFeedbackString[1],
+        JSON.stringify({ [studentFeedbackString[2]]: this.tableValues$.value })
+      );
+      this.snackBar.open(
+        `${studentFeedbackString[1]}_${studentFeedbackString[2]} saved`,
+        'Dismiss'
+      );
+    }
   }
 
   generateTableJSON(): void {
@@ -246,36 +270,12 @@ export class MarkingFeedbackComponent implements OnInit {
     });
     const richTextInput = new ClipboardItem({ 'text/html': blob });
     navigator.clipboard.write([richTextInput]).then(() => {
+      this.saveUserLocalStorage();
       this.snackBar.open('Copied to clipboard', 'Dismiss');
     });
-    // navigator.clipboard
-    //   .writeText(this.outputTable$.value as string)
-    //   .then(() => {
-    //     // Alert the user that the action took place.
-    //     // Nobody likes hidden stuff being done under the hood!
-    //     this.snackBar.open('Copied to clipboard', 'Dismiss');
-    //   });
-    // const spreadSheetRow = new Blob([value], { type: 'text/html' });
-    // navigator.clipboard.write([
-    //   new ClipboardItem({ 'text/html': spreadSheetRow }),
-    // ]);
-
-    // this.clipboard.copy(this.outputTable$.value as string);
   }
 
-  saveUserLocalStorage(): void {
-    let regex = /https:\/\/github.com\/(\w*)\/.+\/tree\/(.*)\/*.*/;
-    let studentFeedbackString = this.githubLink$.value.match(regex);
-    // console.log(this.githubLink$.value.match(regex));
-    if (studentFeedbackString && studentFeedbackString.length > 2) {
-      localStorage.setItem(
-        studentFeedbackString[1],
-        JSON.stringify({ [studentFeedbackString[2]]: this.tableValues$.value })
-      );
-      this.snackBar.open(
-        `${studentFeedbackString[1]}_${studentFeedbackString[2]} saved`,
-        'Dismiss'
-      );
-    }
+  populateLocalStorageDropdown(): void {
+    this.localStorageList$.next(Object.entries(localStorage));
   }
 }
