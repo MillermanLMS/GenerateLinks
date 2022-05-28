@@ -114,6 +114,7 @@ export class MarkingFeedbackComponent {
     this.githubLink$.next(value);
     this.generateTableJSON();
     this.generateStackblitzLink();
+    this.saveGithubLinkToList();
   }
 
   generateStackblitzLink(): void {
@@ -202,12 +203,26 @@ export class MarkingFeedbackComponent {
     // console.log(this.githubLink$.value.match(regex));
     if (studentFeedbackString && studentFeedbackString.length > 2) {
       localStorage.setItem(
-        studentFeedbackString[1],
-        JSON.stringify({ [studentFeedbackString[2]]: this.tableValues$.value })
+        `${this.fileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]}`,
+        JSON.stringify(this.tableValues$.value)
       );
       this.snackBar.open(
-        `${studentFeedbackString[1]}_${studentFeedbackString[2]} saved`,
+        `${this.fileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]} saved`,
         'Dismiss'
+      );
+    }
+  }
+  saveGithubLinkToList(): void {
+    let regex = /(https:\/\/github\.com\/[\w\d]*\/[\w\d]*)/;
+    let match = this.githubLink$.value.match(regex);
+    let studentRepos = JSON.parse(
+      localStorage.getItem(this.fileName + '_repos') || '[]'
+    ) as Array<string>;
+    if (match && !studentRepos.some((sr) => sr === (match && match[0]) || '')) {
+      studentRepos.push(match[0]);
+      localStorage.setItem(
+        this.fileName + '_repos',
+        JSON.stringify(studentRepos)
       );
     }
   }
