@@ -46,12 +46,16 @@
     <mat-label>Final Mark</mat-label>
     <input matInput [value]="overallScore$ | async">
   </mat-form-field>
-  <mat-checkbox fxFlex="10%" class="toggle-button" [ngModel]="triedBonus$ | async"
-    (ngModelChange)="toggleBonus($event)">
+  <mat-checkbox fxFlex="5%" class="toggle-button" [ngModel]="triedBonus$ | async" (ngModelChange)="toggleBonus($event)">
   </mat-checkbox>
+  <ng-container *ngIf="tableValues$ | async as tableValues">
+    <mat-checkbox fxFlex="5%" class="toggle-button" [ngModel]="tableValues.cheated"
+      (ngModelChange)="toggleCheated($event)">
+    </mat-checkbox>
+  </ng-container>
 </div>
 
-<mat-table *ngIf="tableValues$ | async as tableValues" [dataSource]="tableValues" multiTemplateDataRows
+<mat-table *ngIf="tableValues$ | async as tableValues" [dataSource]="tableValues.markingFeedback" multiTemplateDataRows
   class="mat-elevation-z8">
   <ng-container [matColumnDef]="column.matColumnDef" *ngFor="let column of displayedColumns; index as i">
     <mat-header-cell mat-header-cell *matHeaderCellDef>

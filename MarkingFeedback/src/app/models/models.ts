@@ -8,10 +8,14 @@ export interface Feedback {
   deduction: number;
   applied?: boolean;
 }
-export interface MarkingFeedback {
+export interface MarkingFeedbackItem {
   id?: number;
   rubric: Rubric;
   feedbackList: Feedback[];
   pointsAwarded?: number;
   bonus?: boolean;
+}
+export interface MarkingFeedback {
+  markingFeedback: MarkingFeedbackItem[];
+  cheated?: boolean;
 }

@@ -8,7 +8,11 @@ import {
 import { Component, OnInit } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 // import rubric from '../assets/WEB601As1.json';
-import { Feedback, MarkingFeedback } from '../models/models';
+import {
+  Feedback,
+  MarkingFeedbackItem,
+  MarkingFeedback,
+} from '../models/models';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
@@ -34,7 +38,7 @@ import { ActivatedRoute } from '@angular/router';
 export class MarkingFeedbackComponent {
   githubLink$ = new BehaviorSubject<string>('');
   stackblitzLink$ = new BehaviorSubject<string>('#');
-  tableValues$ = new BehaviorSubject<MarkingFeedback[]>([]);
+  tableValues$ = new BehaviorSubject<MarkingFeedback>({ markingFeedback: [] });
   overallScore$ = new BehaviorSubject<number>(0);
   outputTable$ = new BehaviorSubject<string>('');
   tableValuesJSON$ = new BehaviorSubject<[string, string]>(['', '']);
@@ -63,16 +67,22 @@ export class MarkingFeedbackComponent {
     private http: HttpClient,
     private route: ActivatedRoute
   ) {
-    console.log(this.route.snapshot.params);
     let className = this.route.snapshot.params['classname'];
     let assignmentNumber = this.route.snapshot.params['assignment'];
     this.fileName = `${className}As${assignmentNumber}`;
 
     // this.populateLocalStorageDropdown();
-
-    let markingFeedback = JSON.parse(
-      localStorage.getItem(this.fileName) || '[]'
-    );
+    this.init();
+  }
+  init(filename?: string): void {
+    console.log(filename);
+    let markingFeedback = [];
+    if (filename) {
+      markingFeedback = JSON.parse(localStorage.getItem(filename) || '[]');
+    }
+    if (markingFeedback.length === 0) {
+      markingFeedback = JSON.parse(localStorage.getItem(this.fileName) || '[]');
+    }
 
     // TODO: change over to using ngx-indexed-db instead of localstorage for student feedbacks
     // https://github.com/assuncaocharles/ngx-indexed-db
@@ -83,28 +93,38 @@ export class MarkingFeedbackComponent {
       this.http.get(fileLocation).subscribe((rubric) => {
         this.snackBar.open('Loaded from file: ' + fileLocation, 'Dismiss');
         markingFeedback = (
-          (rubric as any)['markingFeedbackList'] as MarkingFeedback[]
+          (rubric as any)['markingFeedbackList'] as MarkingFeedbackItem[]
         ).map((mf, index) => {
           return { ...mf, pointsAwarded: mf.rubric.score, id: index };
         });
-        this.init(markingFeedback);
+        this.initTable({
+          markingFeedback: markingFeedback as MarkingFeedbackItem[],
+        });
       });
       return;
     }
     this.snackBar.open('Local storage loaded: ' + this.fileName, 'Dismiss');
-    this.init(markingFeedback);
+    this.initTable(markingFeedback);
   }
 
-  init(markingFeedback: MarkingFeedback[]): void {
+  initTable(markingFeedback: MarkingFeedback): void {
     this.tableValues$.next(markingFeedback);
     this.generateTableJSON();
     this.overallScore$.next(
-      this.updateScore(markingFeedback as MarkingFeedback[])
+      this.updateScore(markingFeedback as MarkingFeedback)
     );
     this.generateStudentFriendlyTable();
   }
   toggleBonus(eventData: boolean) {
     this.triedBonus$.next(eventData);
+    this.overallScore$.next(this.updateScore());
+    this.generateStudentFriendlyTable();
+  }
+  toggleCheated(eventData: boolean) {
+    this.tableValues$.next({
+      markingFeedback: this.tableValues$.value.markingFeedback,
+      cheated: eventData,
+    });
     this.overallScore$.next(this.updateScore());
     this.generateStudentFriendlyTable();
   }
@@ -115,6 +135,7 @@ export class MarkingFeedbackComponent {
     this.generateTableJSON();
     this.generateStackblitzLink();
     this.saveGithubLinkToList();
+    this.getUserLocalStorage();
   }
 
   generateStackblitzLink(): void {
@@ -127,24 +148,34 @@ export class MarkingFeedbackComponent {
   }
 
   toggleDeduction(row: any): void {
-    let mfl = [...this.tableValues$.value];
+    let mfl = [...this.tableValues$.value.markingFeedback];
     mfl[row.id].pointsAwarded = this.calculateRubricItemScore(
       mfl[row.id].rubric.score,
       mfl[row.id].feedbackList
     );
-    this.overallScore$.next(this.updateScore(mfl));
-    this.tableValues$.next([...mfl]);
+    this.overallScore$.next(
+      this.updateScore({
+        markingFeedback: mfl,
+        cheated: this.tableValues$.value.cheated,
+      })
+    );
+    this.tableValues$.next({
+      markingFeedback: [...mfl],
+      cheated: this.tableValues$.value.cheated,
+    });
     this.generateStudentFriendlyTable();
   }
 
-  updateScore(mfl?: MarkingFeedback[]): number {
-    return (mfl || this.tableValues$.value)
-      .map((mf) =>
-        !mf.bonus || (mf.bonus && this.triedBonus$.value)
-          ? mf.pointsAwarded || 0
-          : 0
-      )
-      .reduce((v, a) => v + a, 0);
+  updateScore(mfl?: MarkingFeedback): number {
+    return this.tableValues$.value.cheated
+      ? 0
+      : (mfl?.markingFeedback || this.tableValues$.value.markingFeedback)
+          .map((mf) =>
+            !mf.bonus || (mf.bonus && this.triedBonus$.value)
+              ? mf.pointsAwarded || 0
+              : 0
+          )
+          .reduce((v, a) => v + a, 0);
   }
 
   calculateRubricItemScore(
@@ -163,26 +194,37 @@ export class MarkingFeedbackComponent {
   }
 
   addFeedback(row: any, feedback: string, deduction: string): void {
-    let mfl = [...this.tableValues$.value];
+    let mfl = [...this.tableValues$.value.markingFeedback];
     mfl[row.id].feedbackList.push({
       feedback,
       deduction: Number(deduction || '0.5'),
     });
-    this.tableValues$.next([...mfl]);
+    this.tableValues$.next({
+      markingFeedback: [...mfl],
+      cheated: this.tableValues$.value.cheated,
+    });
     this.generateStudentFriendlyTable();
   }
 
   removeFeedback(row: any, index: number): void {
     // event.stopPropogation();
     console.log('remove');
-    let mfl = [...this.tableValues$.value];
+    let mfl = [...this.tableValues$.value.markingFeedback];
     mfl[row.id].feedbackList.splice(index, 1);
     mfl[row.id].pointsAwarded = this.calculateRubricItemScore(
       mfl[row.id].rubric.score,
       mfl[row.id].feedbackList
     );
-    this.overallScore$.next(this.updateScore(mfl));
-    this.tableValues$.next([...mfl]);
+    this.overallScore$.next(
+      this.updateScore({
+        markingFeedback: mfl,
+        cheated: this.tableValues$.value.cheated,
+      })
+    );
+    this.tableValues$.next({
+      markingFeedback: [...mfl],
+      cheated: this.tableValues$.value.cheated,
+    });
     this.generateStudentFriendlyTable();
   }
 
@@ -197,6 +239,16 @@ export class MarkingFeedbackComponent {
     this.snackBar.open('Local storage loaded: ' + this.fileName, 'Dismiss');
   }
 
+  getUserLocalStorage(): void {
+    let regex = /https:\/\/github.com\/(\w*)\/.+\/tree\/(.*)\/*.*/;
+    let studentFeedbackString = this.githubLink$.value.match(regex);
+    // console.log(this.githubLink$.value.match(regex));
+    if (studentFeedbackString && studentFeedbackString.length > 2) {
+      this.init(
+        `${this.fileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]}`
+      );
+    }
+  }
   saveUserLocalStorage(): void {
     let regex = /https:\/\/github.com\/(\w*)\/.+\/tree\/(.*)\/*.*/;
     let studentFeedbackString = this.githubLink$.value.match(regex);
@@ -256,7 +308,8 @@ export class MarkingFeedbackComponent {
     const tableheader = `<tr><th>Rubric Criteria</th><th>Score</th></tr>`;
     let tablerows = '';
     let tablerowsdeductions = '';
-    this.tableValues$.value.forEach((mf) => {
+    let cheaterHeader = '';
+    this.tableValues$.value.markingFeedback.forEach((mf) => {
       // console.log("feedback item", mf);
       if (mf.bonus && !this.triedBonus$.value) {
         // if bonus feedback but they didn't try bonus, skip this one
@@ -276,8 +329,11 @@ export class MarkingFeedbackComponent {
       tablerows += tablerowsdeductions;
       tablerowsdeductions = '';
     });
+    if (this.tableValues$.value.cheated) {
+      cheaterHeader = `<h2>Please come see me in the lab</h2>`;
+    }
     this.outputTable$.next(
-      `<table><thead>${tableheader}</thead><tbody>${tablerows}</tbody></table>`
+      `${cheaterHeader}<table><thead>${tableheader}</thead><tbody>${tablerows}</tbody></table>`
     );
     // TODO: generate table based on this.tableValues
     // save it to localstorage too with their username
