@@ -3,6 +3,10 @@
     padding-bottom: 0px;
   }
 }
+.content-wrapper {
+  padding: 16px;
+  text-align: center;
+}
 a {
   cursor: pointer;
 }
@@ -56,4 +60,17 @@ mat-row.element-row:not(.expanded-row):active {
   overflow: hidden;
   display: flex;
   width: calc(100% - 48px);
+}
+
+.output-table-wrapper {
+  margin: 32px 0;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+
+  & > div {
+    border: 1px solid #000;
+    padding: 16px;
+  }
 }
