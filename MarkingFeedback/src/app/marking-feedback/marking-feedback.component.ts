@@ -14,9 +14,9 @@ import {
   MarkingFeedback,
 } from '../models/models';
 import { DomSanitizer } from '@angular/platform-browser';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
+import { SnackService } from '../services/snack.service';
 
 // TODO: make a json file with all the users username and github accounts, so I can make their feedback files easier and import them quickly
 
@@ -63,7 +63,7 @@ export class MarkingFeedbackComponent {
 
   constructor(
     private sanitizer: DomSanitizer,
-    private snackBar: MatSnackBar,
+    private snack: SnackService,
     private http: HttpClient,
     private route: ActivatedRoute
   ) {
@@ -91,7 +91,7 @@ export class MarkingFeedbackComponent {
     if (markingFeedback.length === 0) {
       let fileLocation = `assets/${this.fileName}.json`;
       this.http.get(fileLocation).subscribe((rubric) => {
-        this.snackBar.open('Loaded from file: ' + fileLocation, 'Dismiss');
+        this.snack.open('Loaded from file: ' + fileLocation, 'Dismiss');
         markingFeedback = (
           (rubric as any)['markingFeedbackList'] as MarkingFeedbackItem[]
         ).map((mf, index) => {
@@ -103,7 +103,7 @@ export class MarkingFeedbackComponent {
       });
       return;
     }
-    this.snackBar.open('Local storage loaded: ' + this.fileName, 'Dismiss');
+    this.snack.open('Local storage loaded: ' + this.fileName, 'Dismiss');
     this.initTable(markingFeedback);
   }
 
@@ -236,7 +236,7 @@ export class MarkingFeedbackComponent {
     console.log('Saved Marking Feedback: ', this.tableValues$.value);
     this.generateTableJSON();
     this.generateStudentFriendlyTable();
-    this.snackBar.open('Local storage loaded: ' + this.fileName, 'Dismiss');
+    this.snack.open('Local storage loaded: ' + this.fileName, 'Dismiss');
   }
 
   getUserLocalStorage(): void {
@@ -258,7 +258,7 @@ export class MarkingFeedbackComponent {
         `${this.fileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]}`,
         JSON.stringify(this.tableValues$.value)
       );
-      this.snackBar.open(
+      this.snack.open(
         `${this.fileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]} saved`,
         'Dismiss'
       );
@@ -346,7 +346,7 @@ export class MarkingFeedbackComponent {
     const richTextInput = new ClipboardItem({ 'text/html': blob });
     navigator.clipboard.write([richTextInput]).then(() => {
       this.saveUserLocalStorage();
-      this.snackBar.open('Copied to clipboard', 'Dismiss');
+      this.snack.open('Copied to clipboard', 'Dismiss');
     });
   }
 

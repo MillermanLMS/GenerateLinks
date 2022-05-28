@@ -18,9 +18,10 @@ import { ColumnsPipe } from './columns.pipe';
 import { MatSelectModule } from '@angular/material/select';
 import { HttpClientModule } from '@angular/common/http';
 import { MarkingFeedbackComponent } from './marking-feedback/marking-feedback.component';
+import { MarkingSelectionComponent } from './marking-selection/marking-selection.component';
 
 @NgModule({
-  declarations: [AppComponent, ColumnsPipe, MarkingFeedbackComponent],
+  declarations: [AppComponent, ColumnsPipe, MarkingFeedbackComponent, MarkingSelectionComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,

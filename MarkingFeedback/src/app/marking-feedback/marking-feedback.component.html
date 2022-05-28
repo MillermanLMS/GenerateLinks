@@ -11,17 +11,18 @@
   </mat-form-field> -->
 
   <ng-container *ngIf="tableValuesJSON$ | async as tableValuesJSON">
-    <a mat-raised-button color="primary" [href]="tableValuesJSON[0]" download="stuff.json">Click to save JSON</a>
-    <button mat-raised-button color="primary" (click)="saveJSON()">Save local storage</button>
+    <a mat-raised-button color="primary" [href]="tableValuesJSON[0]" download="stuff.json">SAVE RUBRIC JSON</a>
+    <button mat-raised-button color="primary" (click)="saveJSON()">SAVE RUBRIC LOCALSTORAGE</button>
     <a mat-raised-button color="primary" [href]="tableValuesJSON[1]" [disabled]="!(githubLink$ | async)"
       download="stuff.json">
-      Click to save JSON
+      SAVE USER JSON
     </a>
     <button mat-raised-button color="primary" (click)="saveUserLocalStorage()" [disabled]="!(githubLink$ | async)">
-      Save User Feedback
+      SAVE USER LOCALSTORAGE
     </button>
-    <button mat-raised-button color="primary" (click)="copyTable()" [disabled]="!(githubLink$ | async)">Copy to
-      Clipboard</button>
+    <button mat-raised-button color="primary" (click)="copyTable()" [disabled]="!(githubLink$ | async)">
+      COPY TABLE
+    </button>
   </ng-container>
 </div>
 <div fxLayout="row" fxLayoutAlign="center center">
