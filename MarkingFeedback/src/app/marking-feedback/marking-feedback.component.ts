@@ -10,7 +10,6 @@ import { BehaviorSubject } from 'rxjs';
 // import rubric from '../assets/WEB601As1.json';
 import { Feedback, MarkingFeedback } from '../models/models';
 import { DomSanitizer } from '@angular/platform-browser';
-import { Clipboard } from '@angular/cdk/clipboard';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
@@ -58,32 +57,33 @@ export class MarkingFeedbackComponent implements OnInit {
 
   constructor(
     private sanitizer: DomSanitizer,
-    private clipboard: Clipboard,
     private snackBar: MatSnackBar,
     private http: HttpClient,
     private route: ActivatedRoute
-  ) {
-  }
+  ) {}
+
   ngOnInit(): void {
     console.log(this.route.snapshot.params);
     let className = this.route.snapshot.params['classname'];
     let assignmentNumber = this.route.snapshot.params['assignment'];
-    let fileName = `assets/${className}As${assignmentNumber}.json`;
+    let fileName = `${className}As${assignmentNumber}.json`;
+
     let markingFeedback = JSON.parse(localStorage.getItem(fileName) || '[]');
     // didn't get it from local storage
-    if (markingFeedback.length == 0) {
-      this.http.get(fileName).subscribe(rubric => {
-        markingFeedback = ((rubric as any)['markingFeedbackList'] as MarkingFeedback[]).map(
-          (mf, index) => {
-            return { ...mf, pointsAwarded: mf.rubric.score, id: index };
-          }
-        );
+    if (markingFeedback.length === 0) {
+      this.http.get('assets/' + fileName).subscribe((rubric) => {
+        this.snackBar.open('Loaded from file: assets/' + fileName, 'Dismiss');
+        markingFeedback = (
+          (rubric as any)['markingFeedbackList'] as MarkingFeedback[]
+        ).map((mf, index) => {
+          return { ...mf, pointsAwarded: mf.rubric.score, id: index };
+        });
         this.init(markingFeedback);
       });
-    } else {
-      console.log('Local storage loaded: ', markingFeedback);
-      this.init(markingFeedback);
+      return;
     }
+    this.snackBar.open('Local storage loaded: ' + fileName, 'Dismiss');
+    this.init(markingFeedback);
   }
 
   init(markingFeedback: MarkingFeedback[]): void {
@@ -93,7 +93,6 @@ export class MarkingFeedbackComponent implements OnInit {
       this.updateScore(markingFeedback as MarkingFeedback[])
     );
     this.generateStudentFriendlyTable();
-
   }
   toggleBonus(eventData: boolean) {
     this.triedBonus$.next(eventData);
@@ -144,11 +143,11 @@ export class MarkingFeedbackComponent implements OnInit {
   ): number {
     return Math.max(
       rubricScore -
-      feedbackList
-        .map((f) => {
-          return f.applied ? f.deduction : 0;
-        })
-        .reduce((partialSum, a) => partialSum + a, 0),
+        feedbackList
+          .map((f) => {
+            return f.applied ? f.deduction : 0;
+          })
+          .reduce((partialSum, a) => partialSum + a, 0),
       0
     );
   }
@@ -195,15 +194,17 @@ export class MarkingFeedbackComponent implements OnInit {
       returnValue = `${studentFeedbackString[1]}_${studentFeedbackString[2]}`;
     }
     this.tableValuesJSON$.next([
+      // first value is the normal json file
       this.sanitizer.bypassSecurityTrustResourceUrl(
         'data:application/json;charset=UTF-8,' +
-        encodeURIComponent(JSON.stringify(this.tableValues$.value))
+          encodeURIComponent(JSON.stringify(this.tableValues$.value))
       ) as string,
+      // second value is the student specific one
       this.sanitizer.bypassSecurityTrustResourceUrl(
         'data:application/json;charset=UTF-8,' +
-        encodeURIComponent(
-          JSON.stringify({ [returnValue]: this.tableValues$.value })
-        )
+          encodeURIComponent(
+            JSON.stringify({ [returnValue]: this.tableValues$.value })
+          )
       ) as string,
     ]);
   }
@@ -240,7 +241,26 @@ export class MarkingFeedbackComponent implements OnInit {
     // save the individual users tablevaluesjson in localstorage/json too, so I can easily update it if needed
   }
   copyTable(): void {
-    this.clipboard.copy(this.outputTable$.value as string);
+    const blob = new Blob([this.outputTable$.value as string], {
+      type: 'text/html',
+    });
+    const richTextInput = new ClipboardItem({ 'text/html': blob });
+    navigator.clipboard.write([richTextInput]).then(() => {
+      this.snackBar.open('Copied to clipboard', 'Dismiss');
+    });
+    // navigator.clipboard
+    //   .writeText(this.outputTable$.value as string)
+    //   .then(() => {
+    //     // Alert the user that the action took place.
+    //     // Nobody likes hidden stuff being done under the hood!
+    //     this.snackBar.open('Copied to clipboard', 'Dismiss');
+    //   });
+    // const spreadSheetRow = new Blob([value], { type: 'text/html' });
+    // navigator.clipboard.write([
+    //   new ClipboardItem({ 'text/html': spreadSheetRow }),
+    // ]);
+
+    // this.clipboard.copy(this.outputTable$.value as string);
   }
 
   saveUserLocalStorage(): void {
@@ -253,7 +273,8 @@ export class MarkingFeedbackComponent implements OnInit {
         JSON.stringify({ [studentFeedbackString[2]]: this.tableValues$.value })
       );
       this.snackBar.open(
-        `${studentFeedbackString[1]}_${studentFeedbackString[2]} saved`
+        `${studentFeedbackString[1]}_${studentFeedbackString[2]} saved`,
+        'Dismiss'
       );
     }
   }
