@@ -46,6 +46,7 @@ export class MarkingFeedbackComponent {
   expandedElement: any;
   fileName: string;
   triedBonus$ = new BehaviorSubject<boolean>(false);
+  toggleOutputTableDisplay$ = new BehaviorSubject<boolean>(false);
   displayedColumns: any[] = [
     {
       matColumnDef: 'rubricDescription',
@@ -352,5 +353,9 @@ export class MarkingFeedbackComponent {
 
   populateLocalStorageDropdown(): void {
     this.localStorageList$.next(Object.entries(localStorage));
+  }
+  toggleTableView(e: MouseEvent): void {
+    e.preventDefault();
+    this.toggleOutputTableDisplay$.next(!this.toggleOutputTableDisplay$.value);
   }
 }

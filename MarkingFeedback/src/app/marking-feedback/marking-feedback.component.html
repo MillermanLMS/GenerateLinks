@@ -129,7 +129,7 @@
     <mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></mat-row>
   </mat-table>
 </div>
-<div class="output-table-wrapper">
-  <h1>Output Table</h1>
-  <div [innerHTML]="outputTable$ | async">&nbsp;</div>
+<div class="output-table-wrapper" *ngIf="{ value: toggleOutputTableDisplay$ | async } as toggleOutputTableDisplay">
+  <h1><a href (click)="toggleTableView($event)">Output Table</a></h1>
+  <div *ngIf="toggleOutputTableDisplay.value" [innerHTML]="outputTable$ | async">&nbsp;</div>
 </div>
