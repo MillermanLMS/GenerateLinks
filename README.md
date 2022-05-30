@@ -1,5 +1,30 @@
 # Generate Links
 
+## TODO:
+- make all rubric deduction additions add themselves to the master list json file after it's been added
+- generate a url for each users submission to make it easier to reference them
+- change cheater to AI (academic integrity)
+- add a dropdown for all the students to choose from
+- reset button to load in new github link rather than refresh webpage
+- add due date to json file
+- potentially add things I'm looking for in each rubric so I don't have to keep looking at the assignment file
+  - also maybe just add a preview of the pdf on the page?
+- add undo button when deleting a feedback item
+- add button to indicate late submission and tell them to come to the lab to submit it
+- automatically check for commits made before due date
+  - build in grace period of x time
+- add a section for notes
+- feedback added to the master rubric should automatically be unchecked
+- add related feedback items? like they can related to each other maybe?
+- Add default method or a checkbox that can display a message to tell students to come into the lab for a late submission?
+- Add something that stops me from refreshing when I have changes pending
+- add a way to expand all rows
+  - and keep them expanded
+- Clicking feedback row should tick checkbox
+- need to be able to take .git links:
+  - https://github.com/kushan3/Kushandeep_Singh_Web601Assignment.git
+- 
+
 ### potential ideas to make marking easier:
 - Have them submit their themes in a separate submission
 - Have them submit their github links in a separate submission
