@@ -12,9 +12,14 @@ const routes: Routes = [
   //   component: MarkingSelectionComponent,
   //   pathMatch: 'full',
   // },
+  // {
+  //   path: '',
+  //   redirectTo: '/WEB601/1',
+  //   pathMatch: 'full',
+  // },
   {
     path: '',
-    redirectTo: '/WEB601/1',
+    redirectTo: '/WEB315/1',
     pathMatch: 'full',
   },
   {
@@ -31,4 +36,4 @@ const routes: Routes = [
   imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule],
 })
-export class AppRoutingModule {}
+export class AppRoutingModule { }
