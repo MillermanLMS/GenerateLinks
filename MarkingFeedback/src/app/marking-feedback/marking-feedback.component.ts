@@ -44,7 +44,7 @@ export class MarkingFeedbackComponent {
   tableValuesJSON$ = new BehaviorSubject<[string, string]>(['', '']);
   localStorageList$ = new BehaviorSubject<[string, string][]>([['', '']]);
   expandedElement: any;
-  fileName: string;
+  classRubricFileName: string;
   triedBonus$ = new BehaviorSubject<boolean>(false);
   toggleOutputTableDisplay$ = new BehaviorSubject<boolean>(false);
   displayedColumns: any[] = [
@@ -70,7 +70,7 @@ export class MarkingFeedbackComponent {
   ) {
     let className = this.route.snapshot.params['classname'];
     let assignmentNumber = this.route.snapshot.params['assignment'];
-    this.fileName = `${className}As${assignmentNumber}`;
+    this.classRubricFileName = `${className}As${assignmentNumber}`;
 
     // this.populateLocalStorageDropdown();
     this.init();
@@ -82,7 +82,9 @@ export class MarkingFeedbackComponent {
       markingFeedback = JSON.parse(localStorage.getItem(filename) || '[]');
     }
     if (markingFeedback.length === 0) {
-      markingFeedback = JSON.parse(localStorage.getItem(this.fileName) || '[]');
+      markingFeedback = JSON.parse(
+        localStorage.getItem(this.classRubricFileName) || '[]'
+      );
     }
 
     // TODO: change over to using ngx-indexed-db instead of localstorage for student feedbacks
@@ -90,7 +92,7 @@ export class MarkingFeedbackComponent {
 
     // didn't get it from local storage
     if (markingFeedback.length === 0) {
-      let fileLocation = `assets/${this.fileName}.json`;
+      let fileLocation = `assets/${this.classRubricFileName}.json`;
       this.http.get(fileLocation).subscribe((rubric) => {
         this.snack.open('Loaded from file: ' + fileLocation, 'Dismiss');
         markingFeedback = (
@@ -104,7 +106,10 @@ export class MarkingFeedbackComponent {
       });
       return;
     }
-    this.snack.open('Local storage loaded: ' + this.fileName, 'Dismiss');
+    this.snack.open(
+      'Local storage loaded: ' + this.classRubricFileName,
+      'Dismiss'
+    );
     this.initTable(markingFeedback);
   }
 
@@ -204,6 +209,7 @@ export class MarkingFeedbackComponent {
       markingFeedback: [...mfl],
       cheated: this.tableValues$.value.cheated,
     });
+    this.saveCleanMarkingFeedback();
     this.generateStudentFriendlyTable();
   }
 
@@ -226,18 +232,44 @@ export class MarkingFeedbackComponent {
       markingFeedback: [...mfl],
       cheated: this.tableValues$.value.cheated,
     });
+    this.saveCleanMarkingFeedback();
     this.generateStudentFriendlyTable();
   }
 
   saveJSON(): void {
-    localStorage.setItem(
-      this.fileName,
-      JSON.stringify(this.tableValues$.value)
-    );
+    this.saveCleanMarkingFeedback();
     console.log('Saved Marking Feedback: ', this.tableValues$.value);
     this.generateTableJSON();
     this.generateStudentFriendlyTable();
-    this.snack.open('Local storage loaded: ' + this.fileName, 'Dismiss');
+    this.snack.open(
+      'Local storage loaded: ' + this.classRubricFileName,
+      'Dismiss'
+    );
+  }
+  saveCleanMarkingFeedback(): void {
+    localStorage.setItem(
+      this.classRubricFileName,
+      JSON.stringify(this.cleanMarkingFeedback())
+    );
+  }
+
+  cleanMarkingFeedback(): MarkingFeedback {
+    return {
+      markingFeedback: this.tableValues$.value.markingFeedback.map((mf) => {
+        return {
+          ...mf,
+          pointsAwarded: mf.rubric.score, // reset score
+          feedbackList: mf.feedbackList.map((f) => {
+            // uncheck feedbacks
+            return {
+              feedback: f.feedback,
+              deduction: f.deduction,
+              applied: false,
+            };
+          }),
+        };
+      }) as MarkingFeedbackItem[],
+    } as MarkingFeedback;
   }
 
   getUserLocalStorage(): void {
@@ -246,7 +278,7 @@ export class MarkingFeedbackComponent {
     // console.log(this.githubLink$.value.match(regex));
     if (studentFeedbackString && studentFeedbackString.length > 2) {
       this.init(
-        `${this.fileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]}`
+        `${this.classRubricFileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]}`
       );
     }
   }
@@ -256,11 +288,11 @@ export class MarkingFeedbackComponent {
     // console.log(this.githubLink$.value.match(regex));
     if (studentFeedbackString && studentFeedbackString.length > 2) {
       localStorage.setItem(
-        `${this.fileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]}`,
+        `${this.classRubricFileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]}`,
         JSON.stringify(this.tableValues$.value)
       );
       this.snack.open(
-        `${this.fileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]} saved`,
+        `${this.classRubricFileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]} saved`,
         'Dismiss'
       );
     }
@@ -269,12 +301,12 @@ export class MarkingFeedbackComponent {
     let regex = /(https:\/\/github\.com\/[\w\d]*\/[\w\d]*)/;
     let match = this.githubLink$.value.match(regex);
     let studentRepos = JSON.parse(
-      localStorage.getItem(this.fileName + '_repos') || '[]'
+      localStorage.getItem(this.classRubricFileName + '_repos') || '[]'
     ) as Array<string>;
     if (match && !studentRepos.some((sr) => sr === (match && match[0]) || '')) {
       studentRepos.push(match[0]);
       localStorage.setItem(
-        this.fileName + '_repos',
+        this.classRubricFileName + '_repos',
         JSON.stringify(studentRepos)
       );
     }

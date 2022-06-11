@@ -20,7 +20,7 @@
     <button mat-raised-button color="accent" (click)="saveUserLocalStorage()" [disabled]="!(githubLink$ | async)">
       SAVE USER LOCALSTORAGE
     </button>
-    <button mat-raised-button color="warn" (click)="copyTable()" [disabled]="!(githubLink$ | async)">
+    <button mat-raised-button color="warn" (click)="copyTable()">
       COPY TABLE
     </button>
   </ng-container>
@@ -54,12 +54,12 @@
     </mat-form-field>
   </div>
   <mat-checkbox fxFlex="10" class="toggle-button" [ngModel]="triedBonus$ | async" (ngModelChange)="toggleBonus($event)">
-    Bonus!
+    Did Bonus!
   </mat-checkbox>
   <ng-container *ngIf="tableValues$ | async as tableValues">
     <mat-checkbox fxFlex="10" class="toggle-button" [ngModel]="tableValues.cheated"
       (ngModelChange)="toggleCheated($event)">
-      Cheater!
+      A I!
     </mat-checkbox>
   </ng-container>
 </div>
