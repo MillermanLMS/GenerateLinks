@@ -74,3 +74,11 @@ mat-row.element-row:not(.expanded-row):active {
     padding: 16px;
   }
 }
+
+.teacher-note {
+  margin: 8px 0;
+  padding: 8px;
+}
+.teacher-note.warning {
+  background-color: orange;
+}

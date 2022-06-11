@@ -15,7 +15,13 @@ export interface MarkingFeedbackItem {
   pointsAwarded?: number;
   bonus?: boolean;
 }
+
+export interface TeacherNote {
+  type: string;
+  content: string;
+}
 export interface MarkingFeedback {
   markingFeedback: MarkingFeedbackItem[];
   cheated?: boolean;
+  teacherNotes?: TeacherNote[];
 }

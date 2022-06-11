@@ -12,6 +12,7 @@ import {
   Feedback,
   MarkingFeedbackItem,
   MarkingFeedback,
+  TeacherNote,
 } from '../models/models';
 import { DomSanitizer } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
@@ -102,6 +103,7 @@ export class MarkingFeedbackComponent {
         });
         this.initTable({
           markingFeedback: markingFeedback as MarkingFeedbackItem[],
+          teacherNotes: (rubric as any)['teacherNotes'] as TeacherNote[],
         });
       });
       return;
@@ -255,6 +257,7 @@ export class MarkingFeedbackComponent {
 
   cleanMarkingFeedback(): MarkingFeedback {
     return {
+      teacherNotes: this.tableValues$.value.teacherNotes,
       markingFeedback: this.tableValues$.value.markingFeedback.map((mf) => {
         return {
           ...mf,

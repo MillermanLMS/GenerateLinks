@@ -64,6 +64,12 @@
   </ng-container>
 </div>
 
+<div class="content-wrapper" fxLayout="column" fxLayoutAlign="center center"
+  *ngIf="tableValues$ | async as tableValues">
+  <div [class]="teacherNote.type" class="teacher-note" *ngFor="let teacherNote of tableValues.teacherNotes">
+    {{teacherNote.content}}
+  </div>
+</div>
 <div class="content-wrapper">
   <mat-table *ngIf="tableValues$ | async as tableValues" [dataSource]="tableValues.markingFeedback"
     multiTemplateDataRows class="mat-elevation-z8">
