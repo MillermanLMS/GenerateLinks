@@ -132,6 +132,7 @@ export class MarkingFeedbackComponent {
     this.tableValues$.next({
       markingFeedback: this.tableValues$.value.markingFeedback,
       cheated: eventData,
+      teacherNotes: this.tableValues$.value.teacherNotes,
     });
     this.overallScore$.next(this.updateScore());
     this.generateStudentFriendlyTable();
@@ -165,11 +166,13 @@ export class MarkingFeedbackComponent {
       this.updateScore({
         markingFeedback: mfl,
         cheated: this.tableValues$.value.cheated,
+        teacherNotes: this.tableValues$.value.teacherNotes,
       })
     );
     this.tableValues$.next({
       markingFeedback: [...mfl],
       cheated: this.tableValues$.value.cheated,
+      teacherNotes: this.tableValues$.value.teacherNotes,
     });
     this.generateStudentFriendlyTable();
   }
@@ -210,6 +213,7 @@ export class MarkingFeedbackComponent {
     this.tableValues$.next({
       markingFeedback: [...mfl],
       cheated: this.tableValues$.value.cheated,
+      teacherNotes: this.tableValues$.value.teacherNotes,
     });
     this.saveCleanMarkingFeedback();
     this.generateStudentFriendlyTable();
@@ -228,11 +232,13 @@ export class MarkingFeedbackComponent {
       this.updateScore({
         markingFeedback: mfl,
         cheated: this.tableValues$.value.cheated,
+        teacherNotes: this.tableValues$.value.teacherNotes,
       })
     );
     this.tableValues$.next({
       markingFeedback: [...mfl],
       cheated: this.tableValues$.value.cheated,
+      teacherNotes: this.tableValues$.value.teacherNotes,
     });
     this.saveCleanMarkingFeedback();
     this.generateStudentFriendlyTable();
