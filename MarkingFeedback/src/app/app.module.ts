@@ -16,6 +16,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { ColumnsPipe } from './columns.pipe';
 import { MatSelectModule } from '@angular/material/select';
+import { MatMenuModule } from '@angular/material/menu';
 import { HttpClientModule } from '@angular/common/http';
 import { MarkingFeedbackComponent } from './marking-feedback/marking-feedback.component';
 import { MarkingSelectionComponent } from './marking-selection/marking-selection.component';
@@ -37,8 +38,9 @@ import { MarkingSelectionComponent } from './marking-selection/marking-selection
     MatSelectModule,
     MatSnackBarModule,
     HttpClientModule,
+    MatMenuModule
   ],
   providers: [],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule { }

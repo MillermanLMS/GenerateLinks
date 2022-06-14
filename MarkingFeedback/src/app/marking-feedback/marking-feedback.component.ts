@@ -181,12 +181,12 @@ export class MarkingFeedbackComponent {
     return this.tableValues$.value.cheated
       ? 0
       : (mfl?.markingFeedback || this.tableValues$.value.markingFeedback)
-          .map((mf) =>
-            !mf.bonus || (mf.bonus && this.triedBonus$.value)
-              ? mf.pointsAwarded || 0
-              : 0
-          )
-          .reduce((v, a) => v + a, 0);
+        .map((mf) =>
+          !mf.bonus || (mf.bonus && this.triedBonus$.value)
+            ? mf.pointsAwarded || 0
+            : 0
+        )
+        .reduce((v, a) => v + a, 0);
   }
 
   calculateRubricItemScore(
@@ -195,11 +195,11 @@ export class MarkingFeedbackComponent {
   ): number {
     return Math.max(
       rubricScore -
-        feedbackList
-          .map((f) => {
-            return f.applied ? f.deduction : 0;
-          })
-          .reduce((partialSum, a) => partialSum + a, 0),
+      feedbackList
+        .map((f) => {
+          return f.applied ? f.deduction : 0;
+        })
+        .reduce((partialSum, a) => partialSum + a, 0),
       0
     );
   }
@@ -334,20 +334,22 @@ export class MarkingFeedbackComponent {
       // first value is the normal json file
       this.sanitizer.bypassSecurityTrustResourceUrl(
         'data:application/json;charset=UTF-8,' +
-          encodeURIComponent(JSON.stringify(this.tableValues$.value))
+        encodeURIComponent(JSON.stringify(this.tableValues$.value))
       ) as string,
       // second value is the student specific one
       this.sanitizer.bypassSecurityTrustResourceUrl(
         'data:application/json;charset=UTF-8,' +
-          encodeURIComponent(
-            JSON.stringify({ [returnValue]: this.tableValues$.value })
-          )
+        encodeURIComponent(
+          JSON.stringify({ [returnValue]: this.tableValues$.value })
+        )
       ) as string,
     ]);
   }
 
   generateStudentFriendlyTable(): void {
-    const tableheader = `<tr><th>Rubric Criteria</th><th>Score</th></tr>`;
+    const tableNoticeMessage = `<tr><th colspan="2">Please click the feedback bubble on your assignment to view the table in full</th></tr>`;
+    const tableheader = `<tr><th style="border-bottom: 1px solid #000;">Rubric Criteria</th><th style="border-bottom: 1px solid #000;">Score</th></tr>`;
+    const overallScoreMessage = `<tr><th><strong>Total:</strong></th><th><strong>${this.overallScore$.value}</strong></th></tr>`;
     let tablerows = '';
     let tablerowsdeductions = '';
     let cheaterHeader = '';
@@ -357,7 +359,7 @@ export class MarkingFeedbackComponent {
         // if bonus feedback but they didn't try bonus, skip this one
         return;
       }
-      tablerows += `<tr><td><strong>${mf.rubric.description}</strong></td><td><strong>${mf.pointsAwarded}</strong></td></tr>`;
+      tablerows += `<tr><td><strong>${mf.rubric.description}</strong></td><td><strong>${mf.pointsAwarded}/${mf.rubric.score}</strong></td></tr>`;
       mf.feedbackList.forEach((f) => {
         // console.log("looking at feedback list", f);
         if (f.applied) {
@@ -375,7 +377,8 @@ export class MarkingFeedbackComponent {
       cheaterHeader = `<h2>Please come see me in the lab</h2>`;
     }
     this.outputTable$.next(
-      `${cheaterHeader}<table><thead>${tableheader}</thead><tbody>${tablerows}</tbody></table>`
+      `${cheaterHeader}<table><thead>${overallScoreMessage}${tableNoticeMessage}${tableheader}</thead>
+      <tbody>${tablerows}</tbody></table>`
     );
     // TODO: generate table based on this.tableValues
     // save it to localstorage too with their username
