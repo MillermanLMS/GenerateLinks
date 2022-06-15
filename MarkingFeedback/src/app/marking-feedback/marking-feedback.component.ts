@@ -46,7 +46,7 @@ export class MarkingFeedbackComponent {
   localStorageList$ = new BehaviorSubject<[string, string][]>([['', '']]);
   expandedElement: any;
   classRubricFileName: string;
-  triedBonus$ = new BehaviorSubject<boolean>(false);
+  // triedBonus$ = new BehaviorSubject<boolean>(false);
   toggleOutputTableDisplay$ = new BehaviorSubject<boolean>(false);
   displayedColumns: any[] = [
     {
@@ -78,14 +78,29 @@ export class MarkingFeedbackComponent {
   }
   init(filename?: string): void {
     console.log(filename);
-    let markingFeedback = [];
+    let markingFeedback = JSON.parse(
+      localStorage.getItem(this.classRubricFileName) || '[]'
+    );
     if (filename) {
-      markingFeedback = JSON.parse(localStorage.getItem(filename) || '[]');
-    }
-    if (markingFeedback.length === 0) {
-      markingFeedback = JSON.parse(
-        localStorage.getItem(this.classRubricFileName) || '[]'
+      const filesMarkingFeedback = JSON.parse(
+        localStorage.getItem(filename) || '[]'
+      ) as MarkingFeedback;
+      markingFeedback.cheated = filesMarkingFeedback.cheated;
+      markingFeedback.triedBonus = filesMarkingFeedback.triedBonus;
+      (markingFeedback.markingFeedback as MarkingFeedbackItem[]).forEach(
+        (mf, index) => {
+          mf.feedbackList = [
+            ...mf.feedbackList,
+            ...filesMarkingFeedback.markingFeedback[index].feedbackList,
+          ];
+          mf.pointsAwarded =
+            filesMarkingFeedback.markingFeedback[index].pointsAwarded;
+        }
       );
+      //  = [
+      //   ...markingFeedback,
+      //   JSON.parse(localStorage.getItem(filename) || '[]'),
+      // ];
     }
 
     // TODO: change over to using ngx-indexed-db instead of localstorage for student feedbacks
@@ -124,15 +139,17 @@ export class MarkingFeedbackComponent {
     this.generateStudentFriendlyTable();
   }
   toggleBonus(eventData: boolean) {
-    this.triedBonus$.next(eventData);
+    this.tableValues$.next({
+      ...this.tableValues$.value,
+      triedBonus: eventData,
+    });
     this.overallScore$.next(this.updateScore());
     this.generateStudentFriendlyTable();
   }
   toggleCheated(eventData: boolean) {
     this.tableValues$.next({
-      markingFeedback: this.tableValues$.value.markingFeedback,
+      ...this.tableValues$.value,
       cheated: eventData,
-      teacherNotes: this.tableValues$.value.teacherNotes,
     });
     this.overallScore$.next(this.updateScore());
     this.generateStudentFriendlyTable();
@@ -181,12 +198,12 @@ export class MarkingFeedbackComponent {
     return this.tableValues$.value.cheated
       ? 0
       : (mfl?.markingFeedback || this.tableValues$.value.markingFeedback)
-        .map((mf) =>
-          !mf.bonus || (mf.bonus && this.triedBonus$.value)
-            ? mf.pointsAwarded || 0
-            : 0
-        )
-        .reduce((v, a) => v + a, 0);
+          .map((mf) =>
+            !mf.bonus || (mf.bonus && this.tableValues$.value.triedBonus)
+              ? mf.pointsAwarded || 0
+              : 0
+          )
+          .reduce((v, a) => v + a, 0);
   }
 
   calculateRubricItemScore(
@@ -195,11 +212,11 @@ export class MarkingFeedbackComponent {
   ): number {
     return Math.max(
       rubricScore -
-      feedbackList
-        .map((f) => {
-          return f.applied ? f.deduction : 0;
-        })
-        .reduce((partialSum, a) => partialSum + a, 0),
+        feedbackList
+          .map((f) => {
+            return f.applied ? f.deduction : 0;
+          })
+          .reduce((partialSum, a) => partialSum + a, 0),
       0
     );
   }
@@ -211,9 +228,8 @@ export class MarkingFeedbackComponent {
       deduction: Number(deduction || '0.5'),
     });
     this.tableValues$.next({
+      ...this.tableValues$.value,
       markingFeedback: [...mfl],
-      cheated: this.tableValues$.value.cheated,
-      teacherNotes: this.tableValues$.value.teacherNotes,
     });
     this.saveCleanMarkingFeedback();
     this.generateStudentFriendlyTable();
@@ -236,9 +252,8 @@ export class MarkingFeedbackComponent {
       })
     );
     this.tableValues$.next({
+      ...this.tableValues$,
       markingFeedback: [...mfl],
-      cheated: this.tableValues$.value.cheated,
-      teacherNotes: this.tableValues$.value.teacherNotes,
     });
     this.saveCleanMarkingFeedback();
     this.generateStudentFriendlyTable();
@@ -334,28 +349,31 @@ export class MarkingFeedbackComponent {
       // first value is the normal json file
       this.sanitizer.bypassSecurityTrustResourceUrl(
         'data:application/json;charset=UTF-8,' +
-        encodeURIComponent(JSON.stringify(this.tableValues$.value))
+          encodeURIComponent(JSON.stringify(this.tableValues$.value))
       ) as string,
       // second value is the student specific one
       this.sanitizer.bypassSecurityTrustResourceUrl(
         'data:application/json;charset=UTF-8,' +
-        encodeURIComponent(
-          JSON.stringify({ [returnValue]: this.tableValues$.value })
-        )
+          encodeURIComponent(
+            JSON.stringify({ [returnValue]: this.tableValues$.value })
+          )
       ) as string,
     ]);
   }
 
   generateStudentFriendlyTable(): void {
+    const githubLinkHeader = this.githubLink$.value
+      ? `<h5>GitHub Link Marked:<br>${this.githubLink$.value}</h5>`
+      : '';
     const tableNoticeMessage = `<tr><th colspan="2">Please click the feedback bubble on your assignment to view the table in full</th></tr>`;
-    const tableheader = `<tr><th style="border-bottom: 1px solid #000;">Rubric Criteria</th><th style="border-bottom: 1px solid #000;">Score</th></tr>`;
-    const overallScoreMessage = `<tr><th><strong>Total:</strong></th><th><strong>${this.overallScore$.value}</strong></th></tr>`;
+    const tableHeader = `<tr><th style="border-bottom: 1px solid #000;">Rubric Criteria</th><th style="border-bottom: 1px solid #000;">Score</th></tr>`;
+    const overallScoreMessage = `<tr><td><strong>Total:</strong></td><td><strong>${this.overallScore$.value}</strong></td></tr>`;
     let tablerows = '';
     let tablerowsdeductions = '';
     let cheaterHeader = '';
     this.tableValues$.value.markingFeedback.forEach((mf) => {
       // console.log("feedback item", mf);
-      if (mf.bonus && !this.triedBonus$.value) {
+      if (mf.bonus && !this.tableValues$.value.triedBonus) {
         // if bonus feedback but they didn't try bonus, skip this one
         return;
       }
@@ -377,8 +395,8 @@ export class MarkingFeedbackComponent {
       cheaterHeader = `<h2>Please come see me in the lab</h2>`;
     }
     this.outputTable$.next(
-      `${cheaterHeader}<table><thead>${overallScoreMessage}${tableNoticeMessage}${tableheader}</thead>
-      <tbody>${tablerows}</tbody></table>`
+      `${cheaterHeader}${githubLinkHeader}<table><thead>${tableNoticeMessage}${tableHeader}</thead>
+      <tbody>${tablerows}${overallScoreMessage}</tbody></table>`
     );
     // TODO: generate table based on this.tableValues
     // save it to localstorage too with their username

@@ -57,23 +57,25 @@
       <input matInput [value]="overallScore$ | async">
     </mat-form-field>
   </div>
-  <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Example icon-button with a menu">
-    <mat-icon>more_vert</mat-icon>
-  </button>
-  <mat-menu #menu="matMenu">
-    <button mat-menu-item>
-      <mat-checkbox fxFlex="10" class="toggle-button" [ngModel]="triedBonus$ | async"
-        (ngModelChange)="toggleBonus($event)">
-        Did Bonus!
-      </mat-checkbox>
+  <ng-container *ngIf="tableValues$ | async as tableValues">
+    <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Example icon-button with a menu">
+      <mat-icon>more_vert</mat-icon>
     </button>
-    <button mat-menu-item *ngIf="tableValues$ | async as tableValues">
-      <mat-checkbox fxFlex="10" class="toggle-button" [ngModel]="tableValues.cheated"
-        (ngModelChange)="toggleCheated($event)">
-        A I!
-      </mat-checkbox>
-    </button>
-  </mat-menu>
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item>
+        <mat-checkbox fxFlex="10" class="toggle-button" [ngModel]="tableValues.triedBonus"
+          (ngModelChange)="toggleBonus($event)">
+          Did Bonus!
+        </mat-checkbox>
+      </button>
+      <button mat-menu-item>
+        <mat-checkbox fxFlex="10" class="toggle-button" [ngModel]="tableValues.cheated"
+          (ngModelChange)="toggleCheated($event)">
+          A I!
+        </mat-checkbox>
+      </button>
+    </mat-menu>
+  </ng-container>
 
 </div>
 

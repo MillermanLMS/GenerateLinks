@@ -23,5 +23,6 @@ export interface TeacherNote {
 export interface MarkingFeedback {
   markingFeedback: MarkingFeedbackItem[];
   cheated?: boolean;
+  triedBonus?: boolean;
   teacherNotes?: TeacherNote[];
 }
