@@ -87,16 +87,20 @@ export class MarkingFeedbackComponent {
       ) as MarkingFeedback;
       markingFeedback.cheated = filesMarkingFeedback.cheated;
       markingFeedback.triedBonus = filesMarkingFeedback.triedBonus;
-      (markingFeedback.markingFeedback as MarkingFeedbackItem[]).forEach(
-        (mf, index) => {
-          mf.feedbackList = [
-            ...mf.feedbackList,
-            ...filesMarkingFeedback.markingFeedback[index].feedbackList,
-          ];
-          mf.pointsAwarded =
-            filesMarkingFeedback.markingFeedback[index].pointsAwarded;
-        }
-      );
+      if (filesMarkingFeedback.markingFeedback?.length) {
+        (markingFeedback.markingFeedback as MarkingFeedbackItem[]).forEach(
+          (mf, index) => {
+            mf.feedbackList = [
+              ...new Set([
+                ...mf.feedbackList,
+                ...filesMarkingFeedback.markingFeedback[index].feedbackList,
+              ]),
+            ];
+            mf.pointsAwarded =
+              filesMarkingFeedback.markingFeedback[index].pointsAwarded;
+          }
+        );
+      }
       //  = [
       //   ...markingFeedback,
       //   JSON.parse(localStorage.getItem(filename) || '[]'),
