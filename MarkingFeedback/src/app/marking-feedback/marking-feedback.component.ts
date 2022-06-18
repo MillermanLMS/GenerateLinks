@@ -330,16 +330,15 @@ export class MarkingFeedbackComponent {
     let regex = /https:\/\/github.com\/(\w*)\/.+\/tree\/(.*)\/*.*/;
     let studentFeedbackString = this.githubLink$.value.match(regex);
     // console.log(this.githubLink$.value.match(regex));
+
+    const now = Date.now(); // save one anyway in case I need a reference
+    let storageName = `${this.classRubricFileName}_Score-${this.overallScore$.value}_Time-${now}`;
     if (studentFeedbackString && studentFeedbackString.length > 2) {
-      localStorage.setItem(
-        `${this.classRubricFileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]}`,
-        JSON.stringify(this.tableValues$.value)
-      );
-      this.snack.open(
-        `${this.classRubricFileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]} saved`,
-        'Dismiss'
-      );
+      storageName = `${this.classRubricFileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]}`;
     }
+
+    localStorage.setItem(storageName, JSON.stringify(this.tableValues$.value));
+    this.snack.open(storageName + 'saved', 'Dismiss');
   }
   saveGithubLinkToList(): void {
     let regex = /(https:\/\/github\.com\/[\w\d]*\/[\w\d]*)/;
