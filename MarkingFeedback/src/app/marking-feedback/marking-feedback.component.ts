@@ -13,6 +13,8 @@ import {
   MarkingFeedbackItem,
   MarkingFeedback,
   TeacherNote,
+  ScoringOperation,
+  ScoringTypeValue,
 } from '../models/models';
 import { DomSanitizer } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
@@ -76,11 +78,17 @@ export class MarkingFeedbackComponent {
     // this.populateLocalStorageDropdown();
     this.init();
   }
+
   init(filename?: string): void {
     console.log(filename);
     let markingFeedback = JSON.parse(
       localStorage.getItem(this.classRubricFileName) || '[]'
     );
+    if (markingFeedback['markingFeedback']) {
+      (markingFeedback as MarkingFeedback).markingFeedback.forEach((mf) => {
+        mf['scoring'] = new ScoringOperation(mf['scoringType']);
+      });
+    }
     if (filename) {
       const filesMarkingFeedback = JSON.parse(
         localStorage.getItem(filename) || '[]'
@@ -91,11 +99,16 @@ export class MarkingFeedbackComponent {
         (markingFeedback.markingFeedback as MarkingFeedbackItem[]).forEach(
           (mf, index) => {
             mf.feedbackList = [
+              // using Set removes duplicate items when merging the two arrays
               ...new Set([
                 ...mf.feedbackList,
                 ...filesMarkingFeedback.markingFeedback[index].feedbackList,
               ]),
             ];
+            mf.scoring = new ScoringOperation(
+              mf.scoringType ||
+                filesMarkingFeedback.markingFeedback[index].scoringType
+            );
             mf.pointsAwarded =
               filesMarkingFeedback.markingFeedback[index].pointsAwarded;
           }
@@ -118,7 +131,19 @@ export class MarkingFeedbackComponent {
         markingFeedback = (
           (rubric as any)['markingFeedbackList'] as MarkingFeedbackItem[]
         ).map((mf, index) => {
-          return { ...mf, pointsAwarded: mf.rubric.score, id: index };
+          mf.scoring = new ScoringOperation(mf.scoringType);
+          let defaultValues = {
+            pointsAwarded:
+              mf.scoring.operation == ScoringTypeValue.Subtraction
+                ? mf.rubric.score
+                : 0,
+            id: index,
+            bonus: false,
+          };
+          return {
+            ...defaultValues,
+            ...mf,
+          };
         });
         this.initTable({
           markingFeedback: markingFeedback as MarkingFeedbackItem[],
@@ -177,23 +202,18 @@ export class MarkingFeedbackComponent {
     this.stackblitzLink$.next('https://stackblitz.com/github' + usefulContent);
   }
 
-  toggleDeduction(row: any): void {
+  toggleValueWorth(row: any): void {
     let mfl = [...this.tableValues$.value.markingFeedback];
-    mfl[row.id].pointsAwarded = this.calculateRubricItemScore(
-      mfl[row.id].rubric.score,
-      mfl[row.id].feedbackList
-    );
+    mfl[row.id].pointsAwarded = this.calculateRubricItemScore(mfl[row.id]);
     this.overallScore$.next(
       this.updateScore({
         markingFeedback: mfl,
         cheated: this.tableValues$.value.cheated,
-        teacherNotes: this.tableValues$.value.teacherNotes,
       })
     );
     this.tableValues$.next({
+      ...this.tableValues$.value,
       markingFeedback: [...mfl],
-      cheated: this.tableValues$.value.cheated,
-      teacherNotes: this.tableValues$.value.teacherNotes,
     });
     this.generateStudentFriendlyTable();
   }
@@ -210,18 +230,14 @@ export class MarkingFeedbackComponent {
           .reduce((v, a) => v + a, 0);
   }
 
-  calculateRubricItemScore(
-    rubricScore: number,
-    feedbackList: Feedback[]
-  ): number {
-    return Math.max(
-      rubricScore -
-        feedbackList
-          .map((f) => {
-            return f.applied ? f.deduction : 0;
-          })
-          .reduce((partialSum, a) => partialSum + a, 0),
-      0
+  calculateRubricItemScore(markingFeedbackItem: MarkingFeedbackItem): number {
+    return markingFeedbackItem.scoring.operate(
+      markingFeedbackItem.feedbackList
+        .map((f) => {
+          return f.applied ? f.deduction : 0;
+        })
+        .reduce((partialSum, a) => partialSum + a, 0),
+      markingFeedbackItem.rubric.score
     );
   }
 
@@ -244,15 +260,11 @@ export class MarkingFeedbackComponent {
     console.log('remove');
     let mfl = [...this.tableValues$.value.markingFeedback];
     mfl[row.id].feedbackList.splice(index, 1);
-    mfl[row.id].pointsAwarded = this.calculateRubricItemScore(
-      mfl[row.id].rubric.score,
-      mfl[row.id].feedbackList
-    );
+    mfl[row.id].pointsAwarded = this.calculateRubricItemScore(mfl[row.id]);
     this.overallScore$.next(
       this.updateScore({
         markingFeedback: mfl,
         cheated: this.tableValues$.value.cheated,
-        teacherNotes: this.tableValues$.value.teacherNotes,
       })
     );
     this.tableValues$.next({
@@ -373,7 +385,7 @@ export class MarkingFeedbackComponent {
     const tableHeader = `<tr><th style="border-bottom: 1px solid #000;">Rubric Criteria</th><th style="border-bottom: 1px solid #000;">Score</th></tr>`;
     const overallScoreMessage = `<tr><td><strong>Total:</strong></td><td><strong>${this.overallScore$.value}</strong></td></tr>`;
     let tablerows = '';
-    let tablerowsdeductions = '';
+    let tablerowsvalueWorths = '';
     let cheaterHeader = '';
     this.tableValues$.value.markingFeedback.forEach((mf) => {
       // console.log("feedback item", mf);
@@ -386,14 +398,14 @@ export class MarkingFeedbackComponent {
         // console.log("looking at feedback list", f);
         if (f.applied) {
           // console.log("feedback list applied", f);
-          // if (tablerowsdeductions === '') {
-          //   tablerowsdeductions = `<tr><td colspan="2">Deductions: </td></tr>`;
+          // if (tablerowsvalueWorths === '') {
+          //   tablerowsvalueWorths = `<tr><td colspan="2">valueWorths: </td></tr>`;
           // }
-          tablerowsdeductions += `<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;${f.feedback}</td><td>-${f.deduction}</td></tr>`;
+          tablerowsvalueWorths += `<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;${f.feedback}</td><td>-${f.deduction}</td></tr>`;
         }
       });
-      tablerows += tablerowsdeductions;
-      tablerowsdeductions = '';
+      tablerows += tablerowsvalueWorths;
+      tablerowsvalueWorths = '';
     });
     if (this.tableValues$.value.cheated) {
       cheaterHeader = `<h2>Please come see me in the lab</h2>`;

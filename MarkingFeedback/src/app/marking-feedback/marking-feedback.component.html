@@ -120,7 +120,7 @@
               </span>
               <span fxFlex="15%" class="deduction">{{ feedback.deduction}}</span>
               <mat-checkbox fxFlex="15%" class="toggle-button" [(ngModel)]="feedback.applied"
-                (ngModelChange)="toggleDeduction(row)">
+                (ngModelChange)="toggleValueWorth(row)">
               </mat-checkbox>
             </div>
           </ng-container>
@@ -130,7 +130,7 @@
               <input matInput #feedback placeholder="feedback goes here">
             </mat-form-field>
             <mat-form-field fxFlex="10" appearance="outline">
-              <mat-label>Deduction</mat-label>
+              <mat-label>ValueWorth</mat-label>
               <input matInput #deduction type="number" placeholder="0.5">
             </mat-form-field>
 
