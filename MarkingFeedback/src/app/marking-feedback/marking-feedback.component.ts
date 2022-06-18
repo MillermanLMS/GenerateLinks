@@ -332,13 +332,23 @@ export class MarkingFeedbackComponent {
     // console.log(this.githubLink$.value.match(regex));
 
     const now = Date.now(); // save one anyway in case I need a reference
-    let storageName = `${this.classRubricFileName}_Score-${this.overallScore$.value}_Time-${now}`;
+    let storageName = `${this.classRubricFileName}_Time-${now}_Score-${this.overallScore$.value}`;
     if (studentFeedbackString && studentFeedbackString.length > 2) {
       storageName = `${this.classRubricFileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]}`;
     }
 
-    localStorage.setItem(storageName, JSON.stringify(this.tableValues$.value));
+    localStorage.setItem(storageName, this.tableWithoutEmptyFeedbacks());
     this.snack.open(storageName + 'saved', 'Dismiss');
+  }
+
+  tableWithoutEmptyFeedbacks(): string {
+    let simplifiedTable: MarkingFeedback = JSON.parse(
+      JSON.stringify(this.tableValues$.value)
+    );
+    simplifiedTable.markingFeedback.forEach((mf) => {
+      mf.feedbackList = mf.feedbackList.filter((f) => f.applied);
+    });
+    return JSON.stringify(simplifiedTable);
   }
   saveGithubLinkToList(): void {
     let regex = /(https:\/\/github\.com\/[\w\d]*\/[\w\d]*)/;
