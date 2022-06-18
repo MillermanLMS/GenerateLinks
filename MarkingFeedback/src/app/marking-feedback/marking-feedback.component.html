@@ -112,8 +112,9 @@
         <div fxLayout="column" fxLayoutAlign="start stretch" class="element-detail"
           [@detailExpand]="row == expandedElement ? 'expanded' : 'collapsed'">
           <!-- main expansion code in here -->
-          <ng-container *ngFor="let feedback of row.feedbackList; index as i">
-            <div [class.applied]="feedback.applied" fxLayout="row" class="feedback-wrapper">
+          <ng-container *ngFor="let feedback of row.feedbackList; index as i, odd as isOdd">
+            <div [ngClass]="{ 'applied': feedback.applied, 'odd-row': isOdd }" [class]="row.scoringType" fxLayout="row"
+              class="feedback-wrapper">
               <span fxFlex="70%" class="feedback">
                 <a mat-raised-button color="warn" (click)="removeFeedback(row, i); $event.stopPropagation();">x</a>
                 {{ feedback.feedback}}

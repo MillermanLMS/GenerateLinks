@@ -44,6 +44,14 @@ export class ScoringOperation {
         return -1;
     }
   }
+  toString(): string {
+    switch (this.operation) {
+      case ScoringTypeValue.Subtraction:
+      case ScoringTypeValue.Addition:
+      default:
+        return '';
+    }
+  }
 }
 
 export interface TeacherNote {

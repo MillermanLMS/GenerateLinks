@@ -30,8 +30,15 @@ a {
   padding: 0 16px;
 }
 
-.applied {
-  background-color: #999;
+.odd-row {
+  background-color: #ddd;
+}
+.applied.addition {
+  background-color: green;
+  color: #ffffff;
+}
+.applied.subtraction {
+  background-color: orange;
 }
 
 mat-row.detail-row {

@@ -63,6 +63,10 @@ export class MarkingFeedbackComponent {
       matColumnDef: 'pointsAwarded',
       header: 'Points Awarded',
     },
+    // {
+    //   matColumnDef: 'pointsAwarded',
+    //   header: 'Points Awarded',
+    // }
   ];
 
   constructor(
@@ -401,7 +405,9 @@ export class MarkingFeedbackComponent {
           // if (tablerowsvalueWorths === '') {
           //   tablerowsvalueWorths = `<tr><td colspan="2">valueWorths: </td></tr>`;
           // }
-          tablerowsvalueWorths += `<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;${f.feedback}</td><td>-${f.deduction}</td></tr>`;
+          tablerowsvalueWorths += `<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;${
+            f.feedback
+          }</td><td>${mf.scoring.toString()}${f.deduction}</td></tr>`;
         }
       });
       tablerows += tablerowsvalueWorths;
