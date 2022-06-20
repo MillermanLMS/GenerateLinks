@@ -77,7 +77,13 @@ export class MarkingFeedbackComponent {
   ) {
     let className = this.route.snapshot.params['classname'];
     let assignmentNumber = this.route.snapshot.params['assignment'];
-    this.classRubricFileName = `${className}As${assignmentNumber}`;
+    if (isNaN(Number(assignmentNumber))) {
+      // lets me do Test1
+      this.classRubricFileName = `${className}${assignmentNumber}`;
+    } else {
+      // used for all my assignments with standard names
+      this.classRubricFileName = `${className}As${assignmentNumber}`;
+    }
 
     // this.populateLocalStorageDropdown();
     this.init();
@@ -285,7 +291,7 @@ export class MarkingFeedbackComponent {
     this.generateTableJSON();
     this.generateStudentFriendlyTable();
     this.snack.open(
-      'Local storage loaded: ' + this.classRubricFileName,
+      'Local storage saved: ' + this.classRubricFileName,
       'Dismiss'
     );
   }
@@ -302,7 +308,7 @@ export class MarkingFeedbackComponent {
       markingFeedback: this.tableValues$.value.markingFeedback.map((mf) => {
         return {
           ...mf,
-          pointsAwarded: mf.rubric.score, // reset score
+          pointsAwarded: mf.scoring.defaultRubricScore(mf.rubric.score), // reset score
           feedbackList: mf.feedbackList.map((f) => {
             // uncheck feedbacks
             return {

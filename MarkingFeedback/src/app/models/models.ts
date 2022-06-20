@@ -44,6 +44,16 @@ export class ScoringOperation {
         return -1;
     }
   }
+  defaultRubricScore(rubricScore: number): number {
+    switch (this.operation) {
+      case ScoringTypeValue.Addition:
+        return 0;
+      case ScoringTypeValue.Subtraction:
+        return rubricScore;
+      default:
+        return -1;
+    }
+  }
   toString(): string {
     switch (this.operation) {
       case ScoringTypeValue.Subtraction:
