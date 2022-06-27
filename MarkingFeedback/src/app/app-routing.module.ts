@@ -27,6 +27,10 @@ const routes: Routes = [
     component: MarkingFeedbackComponent,
   },
   {
+    path: ':classname/:assignment/:editor', // c = class, a = assignment
+    component: MarkingFeedbackComponent,
+  },
+  {
     path: '**',
     redirectTo: '',
   },
@@ -36,4 +40,4 @@ const routes: Routes = [
   imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

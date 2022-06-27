@@ -11,7 +11,7 @@
   </mat-form-field> -->
 
   <ng-container *ngIf="tableValuesJSON$ | async as tableValuesJSON">
-    <a mat-raised-button color="primary" [href]="tableValuesJSON[0]" download="stuff.json">
+    <a mat-raised-button color="primary" [href]="tableValuesJSON[0]" download="{{classRubricFileName}}-output.json">
       SAVE RUBRIC JSON
     </a>
     <button mat-raised-button color="primary" (click)="saveJSON()">
@@ -43,11 +43,11 @@
   <!-- TODO: Add a dropdown to select users github accounts from, associating username and github accounts -->
   <div fxFlex="35" fxLayoutAlign="space-around center">
     <mat-form-field fxFlex="90" appearance="outline">
-      <mat-label>Stackblitz</mat-label>
-      <input matInput class="highlight-on-click" [value]="stackblitzLink$ | async"
+      <mat-label>{{editorName$ | async}}</mat-label>
+      <input matInput class="highlight-on-click" [value]="editorLink$ | async"
         placeholder="https://github.com/amillerman01/assignmentrepolink">
     </mat-form-field>
-    <a [href]="stackblitzLink$ | async" target="_blank">
+    <a [href]="editorLink$ | async" target="_blank">
       <mat-icon matSuffix>open_in_new</mat-icon>
     </a>
   </div>

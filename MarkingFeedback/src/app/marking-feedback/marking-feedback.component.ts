@@ -15,6 +15,7 @@ import {
   TeacherNote,
   ScoringOperation,
   ScoringTypeValue,
+  EditorName,
 } from '../models/models';
 import { DomSanitizer } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
@@ -40,7 +41,8 @@ import { SnackService } from '../services/snack.service';
 })
 export class MarkingFeedbackComponent {
   githubLink$ = new BehaviorSubject<string>('');
-  stackblitzLink$ = new BehaviorSubject<string>('#');
+  editorLink$ = new BehaviorSubject<string>('#');
+  editorName$ = new BehaviorSubject<string>('');
   tableValues$ = new BehaviorSubject<MarkingFeedback>({ markingFeedback: [] });
   overallScore$ = new BehaviorSubject<number>(0);
   outputTable$ = new BehaviorSubject<string>('');
@@ -77,6 +79,13 @@ export class MarkingFeedbackComponent {
   ) {
     let className = this.route.snapshot.params['classname'];
     let assignmentNumber = this.route.snapshot.params['assignment'];
+    this.editorName$.next(
+      Object.values(EditorName)[
+        Object.keys(EditorName).indexOf(
+          this.route.snapshot.params['editor'] || 'stackblitz'
+        )
+      ] as string
+    );
     if (isNaN(Number(assignmentNumber))) {
       // lets me do Test1
       this.classRubricFileName = `${className}${assignmentNumber}`;
@@ -198,18 +207,31 @@ export class MarkingFeedbackComponent {
   inputGithub(value: string): void {
     this.githubLink$.next(value);
     this.generateTableJSON();
-    this.generateStackblitzLink();
+    this.generateOnlineEditorLink();
     this.saveGithubLinkToList();
     this.getUserLocalStorage();
   }
 
-  generateStackblitzLink(): void {
+  generateOnlineEditorLink(): void {
     let usefulContent = this.githubLink$.value.replace(
       /(https:\/\/)?(github.com)/g,
       ''
     );
     // TODO: use octokit to make sure this link has the package.json in it
-    this.stackblitzLink$.next('https://stackblitz.com/github' + usefulContent);
+    switch (this.editorName$.value) {
+      case EditorName.stackblitz: {
+        this.editorLink$.next('https://stackblitz.com/github' + usefulContent);
+        break;
+      }
+      case EditorName.vscode: {
+        this.editorLink$.next('https://vscode.dev/github' + usefulContent);
+        break;
+      }
+      case EditorName.codesandbox: {
+        this.editorLink$.next('https://githubbox.com' + usefulContent);
+        break;
+      }
+    }
   }
 
   toggleValueWorth(row: any): void {
