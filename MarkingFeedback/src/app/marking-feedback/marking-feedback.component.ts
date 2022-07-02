@@ -40,6 +40,14 @@ import { SnackService } from '../services/snack.service';
   ],
 })
 export class MarkingFeedbackComponent {
+  alwaysExpanded$ = new BehaviorSubject<boolean>(false);
+  get alwaysExpanded(): boolean {
+    return this.alwaysExpanded$.value;
+  }
+  set alwaysExpanded(v: boolean) {
+    this.alwaysExpanded$.next(v);
+  }
+
   githubLink$ = new BehaviorSubject<string>('');
   editorLink$ = new BehaviorSubject<string>('#');
   editorName$ = new BehaviorSubject<string>('');
@@ -86,6 +94,7 @@ export class MarkingFeedbackComponent {
         )
       ] as string
     );
+    this.alwaysExpanded$.next(!!this.route.snapshot.params['expanded']);
     if (isNaN(Number(assignmentNumber))) {
       // lets me do Test1
       this.classRubricFileName = `${className}${assignmentNumber}`;

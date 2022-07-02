@@ -31,6 +31,10 @@ const routes: Routes = [
     component: MarkingFeedbackComponent,
   },
   {
+    path: ':classname/:assignment/:editor/:expanded', // c = class, a = assignment
+    component: MarkingFeedbackComponent,
+  },
+  {
     path: '**',
     redirectTo: '',
   },

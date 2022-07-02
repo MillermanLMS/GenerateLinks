@@ -74,6 +74,11 @@
           A I!
         </mat-checkbox>
       </button>
+      <button mat-menu-item>
+        <mat-checkbox fxFlex="10" class="toggle-button" [(ngModel)]="alwaysExpanded">
+          Expand Rows
+        </mat-checkbox>
+      </button>
     </mat-menu>
   </ng-container>
 
@@ -110,7 +115,7 @@
     <ng-container matColumnDef="expandedDetail">
       <mat-cell class="element-big-cell" *matCellDef="let row" [attr.colspan]="displayedColumns.length">
         <div fxLayout="column" fxLayoutAlign="start stretch" class="element-detail"
-          [@detailExpand]="row == expandedElement ? 'expanded' : 'collapsed'">
+          [@detailExpand]="row == expandedElement  || (alwaysExpanded$ | async) ? 'expanded' : 'collapsed'">
           <!-- main expansion code in here -->
           <ng-container *ngFor="let feedback of row.feedbackList; index as i, odd as isOdd">
             <div [ngClass]="{ 'applied': feedback.applied, 'odd-row': isOdd }" [class]="row.scoringType" fxLayout="row"
@@ -146,7 +151,8 @@
 
     <mat-header-row *matHeaderRowDef=" displayedColumns | columns"> </mat-header-row>
     <mat-row *matRowDef="let row; columns: displayedColumns | columns" class="element-row"
-      [class.expanded-row]="expandedElement === row" (click)="expandedElement = expandedElement === row ? null : row">
+      [class.expanded-row]="expandedElement === row || (alwaysExpanded$ | async)"
+      (click)="expandedElement = expandedElement === row ? null : row">
     </mat-row>
     <mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></mat-row>
   </mat-table>
