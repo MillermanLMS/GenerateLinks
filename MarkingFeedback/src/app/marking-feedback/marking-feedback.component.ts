@@ -17,7 +17,7 @@ import {
   ScoringTypeValue,
   EditorName,
 } from '../models/models';
-import { DomSanitizer } from '@angular/platform-browser';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { SnackService } from '../services/snack.service';
@@ -54,7 +54,10 @@ export class MarkingFeedbackComponent {
   tableValues$ = new BehaviorSubject<MarkingFeedback>({ markingFeedback: [] });
   overallScore$ = new BehaviorSubject<number>(0);
   outputTable$ = new BehaviorSubject<string>('');
-  tableValuesJSON$ = new BehaviorSubject<[string, string]>(['', '']);
+  tableValuesJSON$ = new BehaviorSubject<[SafeResourceUrl, SafeResourceUrl]>([
+    '',
+    '',
+  ]);
   localStorageList$ = new BehaviorSubject<[string, string][]>([['', '']]);
   expandedElement: any;
   classRubricFileName: string;
@@ -309,7 +312,7 @@ export class MarkingFeedbackComponent {
       })
     );
     this.tableValues$.next({
-      ...this.tableValues$,
+      ...this.tableValues$.value,
       markingFeedback: [...mfl],
     });
     this.saveCleanMarkingFeedback();
@@ -411,19 +414,20 @@ export class MarkingFeedbackComponent {
       ) as RegExpMatchArray;
       returnValue = `${studentFeedbackString[1]}_${studentFeedbackString[2]}`;
     }
+    console.log(this.tableValues$.value);
     this.tableValuesJSON$.next([
       // first value is the normal json file
       this.sanitizer.bypassSecurityTrustResourceUrl(
         'data:application/json;charset=UTF-8,' +
           encodeURIComponent(JSON.stringify(this.tableValues$.value))
-      ) as string,
+      ),
       // second value is the student specific one
       this.sanitizer.bypassSecurityTrustResourceUrl(
         'data:application/json;charset=UTF-8,' +
           encodeURIComponent(
             JSON.stringify({ [returnValue]: this.tableValues$.value })
           )
-      ) as string,
+      ),
     ]);
   }
 
