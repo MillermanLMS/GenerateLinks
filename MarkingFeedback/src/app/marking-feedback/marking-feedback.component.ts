@@ -5,11 +5,10 @@ import {
   transition,
   trigger,
 } from '@angular/animations';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 // import rubric from '../assets/WEB601As1.json';
 import {
-  Feedback,
   MarkingFeedbackItem,
   MarkingFeedback,
   TeacherNote,
@@ -217,7 +216,11 @@ export class MarkingFeedbackComponent {
   // bind so that clicking input highlights it
   // document.querySelectorAll(".highlight-on-click").forEach()
   inputGithub(value: string): void {
-    this.githubLink$.next(value);
+    const validGithubLink = /((?:https:\/\/)?(?:github.com))/g;
+    if (!value.trim().match(validGithubLink)) {
+      return;
+    }
+    this.githubLink$.next(value.trim());
     this.generateTableJSON();
     this.generateOnlineEditorLink();
     this.saveGithubLinkToList();

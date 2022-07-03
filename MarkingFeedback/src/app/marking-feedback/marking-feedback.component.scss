@@ -29,6 +29,11 @@ a {
   align-items: center;
   padding: 0 16px;
 
+  &.applied {
+    background-color: crimson;
+    color: #ffffff;
+  }
+
   .feedback {
     display: flex;
     align-items: center;
@@ -62,7 +67,9 @@ a {
 .applied.subtraction {
   background-color: orange;
 }
-
+mat-row.expanded-row {
+  background-color: rgb(225, 254, 245);
+}
 mat-row.detail-row {
   height: 0;
   min-height: 0;
