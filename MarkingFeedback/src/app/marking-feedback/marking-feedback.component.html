@@ -1,14 +1,16 @@
 <div class="content-wrapper" fxLayout="row" fxLayoutAlign="space-around">
   <!-- TODO: add a dropdown of all the previous jsons -->
-  <!-- <mat-form-field appearance="fill">
-    <mat-label>Select an option</mat-label>
-    <mat-select [(value)]="selected">
-      <mat-option>None</mat-option>
-      <mat-option *ngFor="" value="option1">Option 1</mat-option>
-      <mat-option value="option2">Option 2</mat-option>
-      <mat-option value="option3">Option 3</mat-option>
-    </mat-select>
-  </mat-form-field> -->
+  <ng-container *ngIf="localStorageList$ | async as localStorageList">
+    <ng-container *ngIf="className$ | async as className">
+      <mat-form-field appearance="fill">
+        <mat-label>Select an option</mat-label>
+        <mat-select [ngModel]="className" (selectionChange)="changeMarkingPage($event)">
+          <mat-option>None</mat-option>
+          <mat-option *ngFor="let rubricName of localStorageList" [value]="rubricName">{{rubricName}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </ng-container>
+  </ng-container>
 
   <ng-container *ngIf="tableValuesJSON$ | async as tableValuesJSON">
     <a mat-raised-button color="primary" [href]="tableValuesJSON[0]" download="{{classRubricFileName}}-output.json">

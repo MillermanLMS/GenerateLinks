@@ -18,8 +18,9 @@ import {
 } from '../models/models';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SnackService } from '../services/snack.service';
+import { MatSelectChange } from '@angular/material/select';
 
 // TODO: make a json file with all the users username and github accounts, so I can make their feedback files easier and import them quickly
 
@@ -57,9 +58,10 @@ export class MarkingFeedbackComponent {
     '',
     '',
   ]);
-  localStorageList$ = new BehaviorSubject<[string, string][]>([['', '']]);
+  localStorageList$ = new BehaviorSubject<string[]>([]);
   expandedElement: any;
-  classRubricFileName: string;
+  className$ = new BehaviorSubject<string>('');
+  classRubricFileName: string = '';
   // triedBonus$ = new BehaviorSubject<boolean>(false);
   toggleOutputTableDisplay$ = new BehaviorSubject<boolean>(false);
   displayedColumns: any[] = [
@@ -85,28 +87,32 @@ export class MarkingFeedbackComponent {
     private sanitizer: DomSanitizer,
     private snack: SnackService,
     private http: HttpClient,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {
-    let className = this.route.snapshot.params['classname'];
-    let assignmentNumber = this.route.snapshot.params['assignment'];
-    this.editorName$.next(
-      Object.values(EditorName)[
-        Object.keys(EditorName).indexOf(
-          this.route.snapshot.params['editor'] || 'stackblitz'
-        )
-      ] as string
-    );
-    this.alwaysExpanded$.next(!!this.route.snapshot.params['expanded']);
-    if (isNaN(Number(assignmentNumber))) {
-      // lets me do Test1
-      this.classRubricFileName = `${className}${assignmentNumber}`;
-    } else {
-      // used for all my assignments with standard names
-      this.classRubricFileName = `${className}As${assignmentNumber}`;
-    }
+    let assignmentNumber: string;
+    let editorName: string;
+    this.route.params.subscribe((params) => {
+      this.className$.next(params['classname']);
+      assignmentNumber = params['assignment'];
+      editorName = params['editor'] || 'stackblitz';
+      this.editorName$.next(
+        Object.values(EditorName)[
+          Object.keys(EditorName).indexOf(editorName)
+        ] as string
+      );
+      this.alwaysExpanded$.next(!!this.route.snapshot.params['expanded']);
+      if (isNaN(Number(assignmentNumber))) {
+        // lets me do Test1
+        this.classRubricFileName = `${this.className$.value}${assignmentNumber}`;
+      } else {
+        // used for all my assignments with standard names
+        this.classRubricFileName = `${this.className$.value}As${assignmentNumber}`;
+      }
 
-    // this.populateLocalStorageDropdown();
-    this.init();
+      this.populateLocalStorageDropdown();
+      this.init();
+    });
   }
 
   init(filename?: string): void {
@@ -489,10 +495,52 @@ export class MarkingFeedbackComponent {
   }
 
   populateLocalStorageDropdown(): void {
-    this.localStorageList$.next(Object.entries(localStorage));
+    const rubricsNameList = Object.keys(localStorage)
+      .map((v) => v.split('_')[0])
+      .filter((v, i, s) => {
+        return s.indexOf(v) === i;
+      })
+      .sort();
+    console.log(rubricsNameList);
+    this.localStorageList$.next(
+      rubricsNameList
+      // TODO: come back to this so we can just hotload things here rather than routing
+      // Object.entries(localStorage).filter(([key, value]) => {
+      //   return rubricsNameList.some((name) => {
+      //     // console.assert(name !== key, name, key);
+      //     return name == key;
+      //   });
+      // }).map(([k, v]) => { return {k:, v}})
+    );
+    // console.log(this.localStorageList$.value);
   }
   toggleTableView(e: MouseEvent): void {
     e.preventDefault();
     this.toggleOutputTableDisplay$.next(!this.toggleOutputTableDisplay$.value);
+  }
+
+  changeMarkingPage(eventData: MatSelectChange): void {
+    const routeValue = eventData.value;
+    let route: string[] = [];
+    if (routeValue.substring('As')) {
+      route = routeValue.split('As');
+    } else if (routeValue.substring('Test')) {
+      route = routeValue.split('Test');
+    }
+    // TODO: make this not hardcoded anymore
+    switch (route[0]) {
+      case 'WEB301':
+      case 'WEB303':
+        route.push('codesandbox');
+        break;
+      case 'WEB315':
+        route.push('vscode');
+        break;
+      case 'WEB601':
+        route.push('stackblitz');
+    }
+    route.push('true');
+    console.log(route);
+    this.router.navigate(route);
   }
 }
