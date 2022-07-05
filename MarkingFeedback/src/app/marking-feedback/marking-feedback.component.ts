@@ -522,9 +522,9 @@ export class MarkingFeedbackComponent {
   changeMarkingPage(eventData: MatSelectChange): void {
     const routeValue = eventData.value;
     let route: string[] = [];
-    if (routeValue.substring('As')) {
+    if (routeValue.indexOf('As') >= 0) {
       route = routeValue.split('As');
-    } else if (routeValue.substring('Test')) {
+    } else if (routeValue.indexOf('Test') >= 0) {
       route = routeValue.split('Test');
     }
     // TODO: make this not hardcoded anymore
