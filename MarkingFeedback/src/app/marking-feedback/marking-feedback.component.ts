@@ -49,6 +49,16 @@ export class MarkingFeedbackComponent {
   }
 
   githubLink$ = new BehaviorSubject<string>('');
+  /**
+   * Examples are based on evaluating against the following url:
+   * https://github.com/amillerman01/TestRepo/tree/main/test/index.html
+   * 0: The user's username (ex. amillerman01)
+   * 1: The repository name (ex. TestRepo)
+   * 2: tree
+   * 3: The name of the branch (ex. test)
+   * 4 onward is the file/folder inside of that branch
+   */
+  githubLinkArray: string[] = [];
   editorLink$ = new BehaviorSubject<string>('#');
   editorName$ = new BehaviorSubject<string>('');
   tableValues$ = new BehaviorSubject<MarkingFeedback>({ markingFeedback: [] });
@@ -83,6 +93,21 @@ export class MarkingFeedbackComponent {
     // }
   ];
 
+
+  validGithubLink = /((?:https:\/\/)?github.com\/?)/gi;
+
+  /**
+   * regex for selecting github link values
+   * Examples are based on evaluating against the following url:
+   * https://github.com/amillerman01/TestRepo/tree/main/test/index.html
+   * 1: User's github repository URL (ex. https://github.com/amillerman01)
+   * 2: The user's username (ex. amillerman01)
+   * 3: The repository name (ex. TestRepo)
+   * 4: The name of the branch (ex. test)
+   */
+  // githubBranchSelector = /(https:\/\/github.com\/([a-z\d](?:[a-z\d]|-(?=[a-z\d]))+))(?:\/([a-z\d](?:[a-z\d]|[-_](?=[a-z\d]))+)(?:\/tree\/)*([a-z\d](?:[a-z\d]|[-_](?=[a-z\d]))+)\/*.*)*/i;
+
+
   constructor(
     private sanitizer: DomSanitizer,
     private snack: SnackService,
@@ -98,7 +123,7 @@ export class MarkingFeedbackComponent {
       editorName = params['editor'] || 'stackblitz';
       this.editorName$.next(
         Object.values(EditorName)[
-          Object.keys(EditorName).indexOf(editorName)
+        Object.keys(EditorName).indexOf(editorName)
         ] as string
       );
       this.alwaysExpanded$.next(!!this.route.snapshot.params['expanded']);
@@ -143,7 +168,7 @@ export class MarkingFeedbackComponent {
             ];
             mf.scoring = new ScoringOperation(
               mf.scoringType ||
-                filesMarkingFeedback.markingFeedback[index].scoringType
+              filesMarkingFeedback.markingFeedback[index].scoringType
             );
             mf.pointsAwarded =
               filesMarkingFeedback.markingFeedback[index].pointsAwarded;
@@ -222,11 +247,13 @@ export class MarkingFeedbackComponent {
   // bind so that clicking input highlights it
   // document.querySelectorAll(".highlight-on-click").forEach()
   inputGithub(value: string): void {
-    const validGithubLink = /((?:https:\/\/)?(?:github.com))/g;
-    if (!value.trim().match(validGithubLink)) {
+    if (!value.trim().match(this.validGithubLink)) {
       return;
     }
     this.githubLink$.next(value.trim());
+    value = value.replace(this.validGithubLink, '');
+    this.githubLinkArray = value.split("/").filter(v => v.trim().length);
+
     this.generateTableJSON();
     this.generateOnlineEditorLink();
     this.saveGithubLinkToList();
@@ -234,22 +261,19 @@ export class MarkingFeedbackComponent {
   }
 
   generateOnlineEditorLink(): void {
-    let usefulContent = this.githubLink$.value.replace(
-      /(https:\/\/)?(github.com)/g,
-      ''
-    );
     // TODO: use octokit to make sure this link has the package.json in it
+    const usefulContent = this.githubLinkArray.join("/");
     switch (this.editorName$.value) {
       case EditorName.stackblitz: {
-        this.editorLink$.next('https://stackblitz.com/github' + usefulContent);
+        this.editorLink$.next('https://stackblitz.com/github/' + usefulContent);
         break;
       }
       case EditorName.vscode: {
-        this.editorLink$.next('https://vscode.dev/github' + usefulContent);
+        this.editorLink$.next('https://vscode.dev/github/' + usefulContent);
         break;
       }
       case EditorName.codesandbox: {
-        this.editorLink$.next('https://githubbox.com' + usefulContent);
+        this.editorLink$.next('https://githubbox.com/' + usefulContent);
         break;
       }
     }
@@ -275,12 +299,12 @@ export class MarkingFeedbackComponent {
     return this.tableValues$.value.cheated
       ? 0
       : (mfl?.markingFeedback || this.tableValues$.value.markingFeedback)
-          .map((mf) =>
-            !mf.bonus || (mf.bonus && this.tableValues$.value.triedBonus)
-              ? mf.pointsAwarded || 0
-              : 0
-          )
-          .reduce((v, a) => v + a, 0);
+        .map((mf) =>
+          !mf.bonus || (mf.bonus && this.tableValues$.value.triedBonus)
+            ? mf.pointsAwarded || 0
+            : 0
+        )
+        .reduce((v, a) => v + a, 0);
   }
 
   calculateRubricItemScore(markingFeedbackItem: MarkingFeedbackItem): number {
@@ -366,24 +390,17 @@ export class MarkingFeedbackComponent {
   }
 
   getUserLocalStorage(): void {
-    let regex = /https:\/\/github.com\/(\w*)\/.+\/tree\/(.*)\/*.*/;
-    let studentFeedbackString = this.githubLink$.value.match(regex);
-    // console.log(this.githubLink$.value.match(regex));
-    if (studentFeedbackString && studentFeedbackString.length > 2) {
+    if (this.githubLinkArray.length) {
       this.init(
-        `${this.classRubricFileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]}`
+        `${this.classRubricFileName}_${this.githubLinkArray[0]}_${this.githubLinkArray[3] || "main"}`
       );
     }
   }
   saveUserLocalStorage(): void {
-    let regex = /https:\/\/github.com\/(\w*)\/.+\/tree\/(.*)\/*.*/;
-    let studentFeedbackString = this.githubLink$.value.match(regex);
-    // console.log(this.githubLink$.value.match(regex));
-
     const now = Date.now(); // save one anyway in case I need a reference
     let storageName = `${this.classRubricFileName}_Time-${now}_Score-${this.overallScore$.value}`;
-    if (studentFeedbackString && studentFeedbackString.length > 2) {
-      storageName = `${this.classRubricFileName}_${studentFeedbackString[1]}_${studentFeedbackString[2]}`;
+    if (this.githubLinkArray.length) {
+      storageName = `${this.classRubricFileName}_${this.githubLinkArray[0]}_${this.githubLinkArray[3] || "main"}`;
     }
 
     localStorage.setItem(storageName, this.tableWithoutEmptyFeedbacks());
@@ -400,42 +417,39 @@ export class MarkingFeedbackComponent {
     return JSON.stringify(simplifiedTable);
   }
   saveGithubLinkToList(): void {
-    let regex = /(https:\/\/github\.com\/[\w\d]*\/[\w\d]*)/;
-    let match = this.githubLink$.value.match(regex);
     let studentRepos = JSON.parse(
       localStorage.getItem(this.classRubricFileName + '_repos') || '[]'
     ) as Array<string>;
-    if (match && !studentRepos.some((sr) => sr === (match && match[0]) || '')) {
-      studentRepos.push(match[0]);
-      localStorage.setItem(
-        this.classRubricFileName + '_repos',
-        JSON.stringify(studentRepos)
-      );
+    if (this.githubLinkArray) {
+      const usefulContent = this.githubLink$.value;
+      if (!studentRepos.some((sr) => sr === usefulContent)) {
+        studentRepos.push(usefulContent);
+        localStorage.setItem(
+          this.classRubricFileName + '_repos',
+          JSON.stringify(studentRepos)
+        );
+      }
     }
   }
 
   generateTableJSON(): void {
     let returnValue = '';
-    if (this.githubLink$.value) {
-      let regex = /https:\/\/github.com\/(\w*)\/.+\/tree\/(.*)\/*.*/;
-      let studentFeedbackString = this.githubLink$.value.match(
-        regex
-      ) as RegExpMatchArray;
-      returnValue = `${studentFeedbackString[1]}_${studentFeedbackString[2]}`;
+    if (this.githubLinkArray.length) {
+      returnValue = `${this.githubLinkArray[0]}_${this.githubLinkArray[3] || "main"}`;
     }
     console.log(this.tableValues$.value);
     this.tableValuesJSON$.next([
       // first value is the normal json file
       this.sanitizer.bypassSecurityTrustResourceUrl(
         'data:application/json;charset=UTF-8,' +
-          encodeURIComponent(JSON.stringify(this.tableValues$.value))
+        encodeURIComponent(JSON.stringify(this.tableValues$.value))
       ),
       // second value is the student specific one
       this.sanitizer.bypassSecurityTrustResourceUrl(
         'data:application/json;charset=UTF-8,' +
-          encodeURIComponent(
-            JSON.stringify({ [returnValue]: this.tableValues$.value })
-          )
+        encodeURIComponent(
+          JSON.stringify({ [returnValue]: this.tableValues$.value })
+        )
       ),
     ]);
   }
@@ -464,9 +478,8 @@ export class MarkingFeedbackComponent {
           // if (tablerowsvalueWorths === '') {
           //   tablerowsvalueWorths = `<tr><td colspan="2">valueWorths: </td></tr>`;
           // }
-          tablerowsvalueWorths += `<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;${
-            f.feedback
-          }</td><td>${mf.scoring.toString()}${f.deduction}</td></tr>`;
+          tablerowsvalueWorths += `<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;${f.feedback
+            }</td><td>${mf.scoring.toString()}${f.deduction}</td></tr>`;
         }
       });
       tablerows += tablerowsvalueWorths;
