@@ -539,6 +539,7 @@ export class MarkingFeedbackComponent {
       route = routeValue.split('As');
     } else if (routeValue.indexOf('Test') >= 0) {
       route = routeValue.split('Test');
+      route[route.length - 1] = "Test" + route[route.length - 1];
     }
     // TODO: make this not hardcoded anymore
     switch (route[0]) {
