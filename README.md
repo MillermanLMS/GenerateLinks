@@ -22,7 +22,7 @@
   - and keep them expanded
 - Clicking feedback row should tick checkbox
 - need to be able to take .git links:
-  - https://github.com/kushan3/Kushandeep_Singh_Web601Assignment.git
+  - https://github.com/amillerman01/Assignment1/Assignment1.git
 - 
 
 ### potential ideas to make marking easier:
