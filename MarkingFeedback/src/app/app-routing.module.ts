@@ -1,6 +1,7 @@
 import { FullscreenOverlayContainer } from '@angular/cdk/overlay';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { HomeComponent } from './home/home.component';
 import { MarkingFeedbackComponent } from './marking-feedback/marking-feedback.component';
 import { MarkingSelectionComponent } from './marking-selection/marking-selection.component';
 
@@ -19,8 +20,7 @@ const routes: Routes = [
   // },
   {
     path: '',
-    redirectTo: '/WEB315/1',
-    pathMatch: 'full',
+    component: HomeComponent
   },
   {
     path: ':classname/:assignment', // c = class, a = assignment
