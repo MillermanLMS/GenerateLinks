@@ -1,32 +1,6 @@
-export interface Rubric {
-  description: string;
-  score: number;
-  type?: string;
-}
-export interface Feedback {
-  feedback: string;
-  // valueWorth: number; // change to this once you figure out migrating deductions over
-  deduction: number;
-  applied?: boolean;
-}
-export interface MarkingFeedbackItem {
-  rubric: Rubric;
-  feedbackList: Feedback[];
-  id?: number;
-  pointsAwarded?: number;
-  bonus?: boolean;
-  scoring: ScoringOperation;
-  scoringType?: string;
-}
+import { ScoringTypeValue } from "../enums/ScoringTypeValue";
+import { ScoringType } from "./ScoringType";
 
-export type ScoringType =
-  | ScoringTypeValue.Subtraction
-  | ScoringTypeValue.Addition;
-
-export enum ScoringTypeValue {
-  Subtraction = 'subtraction',
-  Addition = 'addition',
-}
 export class ScoringOperation {
   operation: ScoringType = ScoringTypeValue.Subtraction;
   constructor(scoringType?: string) {
@@ -62,21 +36,4 @@ export class ScoringOperation {
         return '';
     }
   }
-}
-
-export interface TeacherNote {
-  type: string;
-  content: string;
-}
-export interface MarkingFeedback {
-  markingFeedback: MarkingFeedbackItem[];
-  cheated?: boolean;
-  triedBonus?: boolean;
-  teacherNotes?: TeacherNote[];
-}
-
-export enum EditorName {
-  stackblitz = 'Stackblitz',
-  vscode = 'VSCode',
-  codesandbox = 'Code Sandbox',
 }

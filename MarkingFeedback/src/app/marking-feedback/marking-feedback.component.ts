@@ -7,20 +7,17 @@ import {
 } from '@angular/animations';
 import { Component } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-// import rubric from '../assets/WEB601As1.json';
-import {
-  MarkingFeedbackItem,
-  MarkingFeedback,
-  TeacherNote,
-  ScoringOperation,
-  ScoringTypeValue,
-  EditorName,
-} from '../models/models';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SnackService } from '../services/snack.service';
 import { MatSelectChange } from '@angular/material/select';
+import { EditorName } from '../models/enums/EditorName';
+import { ScoringTypeValue } from '../models/enums/ScoringTypeValue';
+import { MarkingFeedback } from '../models/MarkingFeedback';
+import { MarkingFeedbackItem } from '../models/MarkingFeedbackItem';
+import { ScoringOperation } from '../models/Scoring/ScoringOperation';
+import { TeacherNote } from '../models/TeacherNote';
 
 // TODO: make a json file with all the users username and github accounts, so I can make their feedback files easier and import them quickly
 
