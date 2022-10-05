@@ -65,7 +65,7 @@ export class MarkingFeedbackComponent {
     '',
     '',
   ]);
-  localStorageList$ = new BehaviorSubject<string[]>([]);
+  // localStorageList$ = new BehaviorSubject<string[]>([]);
   expandedElement: any;
   className$ = new BehaviorSubject<string>('');
   classRubricFileName: string = '';
@@ -132,7 +132,7 @@ export class MarkingFeedbackComponent {
         this.classRubricFileName = `${this.className$.value}As${assignmentNumber}`;
       }
 
-      this.populateLocalStorageDropdown();
+      // this.populateLocalStorageDropdown();
       this.init();
     });
   }
@@ -504,54 +504,9 @@ export class MarkingFeedbackComponent {
     });
   }
 
-  populateLocalStorageDropdown(): void {
-    const rubricsNameList = Object.keys(localStorage)
-      .map((v) => v.split('_')[0])
-      .filter((v, i, s) => {
-        return s.indexOf(v) === i;
-      })
-      .sort();
-    console.log(rubricsNameList);
-    this.localStorageList$.next(
-      rubricsNameList
-      // TODO: come back to this so we can just hotload things here rather than routing
-      // Object.entries(localStorage).filter(([key, value]) => {
-      //   return rubricsNameList.some((name) => {
-      //     // console.assert(name !== key, name, key);
-      //     return name == key;
-      //   });
-      // }).map(([k, v]) => { return {k:, v}})
-    );
-    // console.log(this.localStorageList$.value);
-  }
   toggleTableView(e: MouseEvent): void {
     e.preventDefault();
     this.toggleOutputTableDisplay$.next(!this.toggleOutputTableDisplay$.value);
   }
 
-  changeMarkingPage(eventData: MatSelectChange): void {
-    const routeValue = eventData.value;
-    let route: string[] = [];
-    if (routeValue.indexOf('As') >= 0) {
-      route = routeValue.split('As');
-    } else if (routeValue.indexOf('Test') >= 0) {
-      route = routeValue.split('Test');
-      route[route.length - 1] = "Test" + route[route.length - 1];
-    }
-    // TODO: make this not hardcoded anymore
-    switch (route[0]) {
-      case 'WEB301':
-      case 'WEB303':
-        route.push('codesandbox');
-        break;
-      case 'WEB315':
-        route.push('vscode');
-        break;
-      case 'WEB601':
-        route.push('stackblitz');
-    }
-    route.push('true');
-    console.log(route);
-    this.router.navigate(route);
-  }
 }

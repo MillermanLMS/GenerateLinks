@@ -1,1 +1,17 @@
-<p>home works!</p>
+<div>Select from the files you've added locally to your machine:</div>
+<div>
+  <!-- TODO: add a dropdown of all the previous jsons -->
+  <ng-container *ngIf="localStorageList$ | async as localStorageList">
+    <mat-form-field appearance="fill">
+      <mat-label>Select an option</mat-label>
+      <mat-select (selectionChange)="changeMarkingPage($event)">
+        <mat-option>None</mat-option>
+        <mat-option
+          *ngFor="let rubricName of localStorageList"
+          [value]="rubricName"
+          >{{ rubricName }}</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+  </ng-container>
+</div>

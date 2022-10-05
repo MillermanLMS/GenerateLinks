@@ -20,9 +20,10 @@ import { MatMenuModule } from '@angular/material/menu';
 import { HttpClientModule } from '@angular/common/http';
 import { MarkingFeedbackComponent } from './marking-feedback/marking-feedback.component';
 import { MarkingSelectionComponent } from './marking-selection/marking-selection.component';
+import { HomeComponent } from './home/home.component';
 
 @NgModule({
-  declarations: [AppComponent, ColumnsPipe, MarkingFeedbackComponent, MarkingSelectionComponent],
+  declarations: [AppComponent, ColumnsPipe, MarkingFeedbackComponent, MarkingSelectionComponent, HomeComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,

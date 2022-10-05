@@ -1,29 +1,31 @@
 <div class="content-wrapper" fxLayout="row" fxLayoutAlign="space-around">
-  <!-- TODO: add a dropdown of all the previous jsons -->
-  <ng-container *ngIf="localStorageList$ | async as localStorageList">
-    <ng-container *ngIf="className$ | async as className">
-      <mat-form-field appearance="fill">
-        <mat-label>Select an option</mat-label>
-        <mat-select [ngModel]="className" (selectionChange)="changeMarkingPage($event)">
-          <mat-option>None</mat-option>
-          <mat-option *ngFor="let rubricName of localStorageList" [value]="rubricName">{{rubricName}}</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </ng-container>
-  </ng-container>
-
   <ng-container *ngIf="tableValuesJSON$ | async as tableValuesJSON">
-    <a mat-raised-button color="primary" [href]="tableValuesJSON[0]" download="{{classRubricFileName}}-output.json">
+    <a
+      mat-raised-button
+      color="primary"
+      [href]="tableValuesJSON[0]"
+      download="{{ classRubricFileName }}-output.json"
+    >
       SAVE RUBRIC JSON
     </a>
     <button mat-raised-button color="primary" (click)="saveJSON()">
       SAVE RUBRIC LOCALSTORAGE
     </button>
-    <a mat-raised-button color="accent" [href]="tableValuesJSON[1]" [disabled]="!(githubLink$ | async)"
-      download="stuff.json">
+    <a
+      mat-raised-button
+      color="accent"
+      [href]="tableValuesJSON[1]"
+      [disabled]="!(githubLink$ | async)"
+      download="stuff.json"
+    >
       SAVE USER JSON
     </a>
-    <button mat-raised-button color="accent" (click)="saveUserLocalStorage()" [disabled]="!(githubLink$ | async)">
+    <button
+      mat-raised-button
+      color="accent"
+      (click)="saveUserLocalStorage()"
+      [disabled]="!(githubLink$ | async)"
+    >
       SAVE USER LOCALSTORAGE
     </button>
     <button mat-raised-button color="warn" (click)="copyTable()">
@@ -35,8 +37,15 @@
   <div fxFlex="35" fxLayoutAlign="space-around center">
     <mat-form-field fxFlex="90" appearance="outline">
       <mat-label>GitHub</mat-label>
-      <input matInput [ngModel]="githubLink$ | async" (ngModelChange)="inputGithub($event)"
-        placeholder="https://github.com/amillerman01/assignmentrepolink" autofocus #github (focus)="github.select()">
+      <input
+        matInput
+        [ngModel]="githubLink$ | async"
+        (ngModelChange)="inputGithub($event)"
+        placeholder="https://github.com/amillerman01/assignmentrepolink"
+        autofocus
+        #github
+        (focus)="github.select()"
+      />
     </mat-form-field>
     <a [href]="githubLink$ | async" target="_blank">
       <mat-icon matSuffix>open_in_new</mat-icon>
@@ -45,9 +54,15 @@
   <!-- TODO: Add a dropdown to select users github accounts from, associating username and github accounts -->
   <div fxFlex="35" fxLayoutAlign="space-around center">
     <mat-form-field fxFlex="90" appearance="outline">
-      <mat-label>{{editorName$ | async}}</mat-label>
-      <input matInput class="highlight-on-click" [value]="editorLink$ | async"
-        placeholder="https://github.com/amillerman01/assignmentrepolink" #editor (focus)="editor.select()">
+      <mat-label>{{ editorName$ | async }}</mat-label>
+      <input
+        matInput
+        class="highlight-on-click"
+        [value]="editorLink$ | async"
+        placeholder="https://github.com/amillerman01/assignmentrepolink"
+        #editor
+        (focus)="editor.select()"
+      />
     </mat-form-field>
     <a [href]="editorLink$ | async" target="_blank">
       <mat-icon matSuffix>open_in_new</mat-icon>
@@ -56,46 +71,68 @@
   <div fxFlex="10" fxLayoutAlign="flex-end center">
     <mat-form-field fxFlex="95" appearance="outline">
       <mat-label>Final Mark</mat-label>
-      <input matInput [value]="overallScore$ | async">
+      <input matInput [value]="overallScore$ | async" />
     </mat-form-field>
   </div>
   <ng-container *ngIf="tableValues$ | async as tableValues">
-    <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Example icon-button with a menu">
+    <button
+      mat-icon-button
+      [matMenuTriggerFor]="menu"
+      aria-label="Example icon-button with a menu"
+    >
       <mat-icon>more_vert</mat-icon>
     </button>
     <mat-menu #menu="matMenu">
       <button mat-menu-item>
-        <mat-checkbox fxFlex="10" class="toggle-button" [ngModel]="tableValues.triedBonus"
-          (ngModelChange)="toggleBonus($event)">
+        <mat-checkbox
+          fxFlex="10"
+          class="toggle-button"
+          [ngModel]="tableValues.triedBonus"
+          (ngModelChange)="toggleBonus($event)"
+        >
           Did Bonus!
         </mat-checkbox>
       </button>
       <button mat-menu-item>
-        <mat-checkbox fxFlex="10" class="toggle-button" [ngModel]="tableValues.cheated"
-          (ngModelChange)="toggleCheated($event)">
+        <mat-checkbox
+          fxFlex="10"
+          class="toggle-button"
+          [ngModel]="tableValues.cheated"
+          (ngModelChange)="toggleCheated($event)"
+        >
           A I!
         </mat-checkbox>
       </button>
       <button mat-menu-item>
-        <mat-checkbox fxFlex="10" class="toggle-button" [(ngModel)]="alwaysExpanded">
+        <mat-checkbox
+          fxFlex="10"
+          class="toggle-button"
+          [(ngModel)]="alwaysExpanded"
+        >
           Expand Rows
         </mat-checkbox>
       </button>
     </mat-menu>
   </ng-container>
-
 </div>
 <div class="content-wrapper">
-  <mat-table *ngIf="tableValues$ | async as tableValues" [dataSource]="tableValues.markingFeedback"
-    multiTemplateDataRows class="mat-elevation-z8">
-    <ng-container [matColumnDef]="column.matColumnDef" *ngFor="let column of displayedColumns; index as i">
+  <mat-table
+    *ngIf="tableValues$ | async as tableValues"
+    [dataSource]="tableValues.markingFeedback"
+    multiTemplateDataRows
+    class="mat-elevation-z8"
+  >
+    <ng-container
+      [matColumnDef]="column.matColumnDef"
+      *ngFor="let column of displayedColumns; index as i"
+    >
       <mat-header-cell mat-header-cell *matHeaderCellDef>
         {{ column.header }}
       </mat-header-cell>
       <mat-cell mat-cell *matCellDef="let row">
         <ng-container [ngSwitch]="true">
           <span *ngSwitchCase="i === 0">
-            {{row.rubric.description }}
+            {{ row.rubric.description }}
           </span>
           <span *ngSwitchCase="i === 1">
             {{ row.rubric.score }}
@@ -108,58 +145,122 @@
     </ng-container>
     <!-- Expanded Content Column - The detail row is made up of this one column that spans across all columns -->
     <ng-container matColumnDef="expandedDetail">
-      <mat-cell class="element-big-cell" *matCellDef="let row" [attr.colspan]="displayedColumns.length">
-        <div fxLayout="column" fxLayoutAlign="start stretch" class="element-detail"
-          [@detailExpand]="row == expandedElement  || (alwaysExpanded$ | async) ? 'expanded' : 'collapsed'">
+      <mat-cell
+        class="element-big-cell"
+        *matCellDef="let row"
+        [attr.colspan]="displayedColumns.length"
+      >
+        <div
+          fxLayout="column"
+          fxLayoutAlign="start stretch"
+          class="element-detail"
+          [@detailExpand]="
+            row == expandedElement || (alwaysExpanded$ | async)
+              ? 'expanded'
+              : 'collapsed'
+          "
+        >
           <!-- main expansion code in here -->
-          <ng-container *ngFor="let feedback of row.feedbackList; index as i, odd as isOdd">
-            <div [ngClass]="{ 'applied': feedback.applied, 'odd-row': isOdd }" [class]="row.scoringType" fxLayout="row"
-              class="feedback-wrapper">
+          <ng-container
+            *ngFor="let feedback of row.feedbackList; index as i; odd as isOdd"
+          >
+            <div
+              [ngClass]="{ applied: feedback.applied, 'odd-row': isOdd }"
+              [class]="row.scoringType"
+              fxLayout="row"
+              class="feedback-wrapper"
+            >
               <span fxFlex="70%" class="feedback">
-                <a mat-raised-button color="warn" (click)="removeFeedback(row, i); $event.stopPropagation();">x</a>
-                {{ feedback.feedback}}
+                <a
+                  mat-raised-button
+                  color="warn"
+                  (click)="removeFeedback(row, i); $event.stopPropagation()"
+                  >x</a
+                >
+                {{ feedback.feedback }}
               </span>
-              <span fxFlex="15%" class="deduction">{{ feedback.deduction}}</span>
-              <mat-checkbox fxFlex="15%" class="toggle-button" [(ngModel)]="feedback.applied"
-                (ngModelChange)="toggleValueWorth(row)">
+              <span fxFlex="15%" class="deduction">{{
+                feedback.deduction
+              }}</span>
+              <mat-checkbox
+                fxFlex="15%"
+                class="toggle-button"
+                [(ngModel)]="feedback.applied"
+                (ngModelChange)="toggleValueWorth(row)"
+              >
               </mat-checkbox>
             </div>
           </ng-container>
-          <div fxLayout="row" fxLayoutAlign="space-between center" class="feedback-creation">
+          <div
+            fxLayout="row"
+            fxLayoutAlign="space-between center"
+            class="feedback-creation"
+          >
             <mat-form-field fxFlex="65" appearance="outline">
               <mat-label>Feedback</mat-label>
-              <input matInput #feedback placeholder="feedback goes here">
+              <input matInput #feedback placeholder="feedback goes here" />
             </mat-form-field>
             <mat-form-field fxFlex="10" appearance="outline">
               <mat-label>ValueWorth</mat-label>
-              <input matInput #deduction type="number" placeholder="0.5">
+              <input matInput #deduction type="number" placeholder="0.5" />
             </mat-form-field>
 
-            <button fxFlex="15" mat-raised-button color="primary"
-              (click)="addFeedback(row, feedback.value, deduction.value)">Add
-              Feedback</button>
+            <button
+              fxFlex="15"
+              mat-raised-button
+              color="primary"
+              (click)="addFeedback(row, feedback.value, deduction.value)"
+            >
+              Add Feedback
+            </button>
           </div>
         </div>
       </mat-cell>
     </ng-container>
 
-
-    <mat-header-row *matHeaderRowDef=" displayedColumns | columns"> </mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns | columns" class="element-row"
-      [class.expanded-row]="expandedElement === row || (alwaysExpanded$ | async)"
-      (click)="expandedElement = expandedElement === row ? null : row">
+    <mat-header-row *matHeaderRowDef="displayedColumns | columns">
+    </mat-header-row>
+    <mat-row
+      *matRowDef="let row; columns: displayedColumns | columns"
+      class="element-row"
+      [class.expanded-row]="
+        expandedElement === row || (alwaysExpanded$ | async)
+      "
+      (click)="expandedElement = expandedElement === row ? null : row"
+    >
     </mat-row>
-    <mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></mat-row>
+    <mat-row
+      *matRowDef="let row; columns: ['expandedDetail']"
+      class="detail-row"
+    ></mat-row>
   </mat-table>
 </div>
-<div class="content-wrapper" fxLayout="column" fxLayoutAlign="center center"
-  *ngIf="tableValues$ | async as tableValues">
-  <div [class]="teacherNote.type" class="teacher-note" *ngFor="let teacherNote of tableValues.teacherNotes">
-    {{teacherNote.content}}
+<div
+  class="content-wrapper"
+  fxLayout="column"
+  fxLayoutAlign="center center"
+  *ngIf="tableValues$ | async as tableValues"
+>
+  <div
+    [class]="teacherNote.type"
+    class="teacher-note"
+    *ngFor="let teacherNote of tableValues.teacherNotes"
+  >
+    {{ teacherNote.content }}
   </div>
 </div>
 
-<div class="output-table-wrapper" *ngIf="{ value: toggleOutputTableDisplay$ | async } as toggleOutputTableDisplay">
+<div
+  class="output-table-wrapper"
+  *ngIf="{
+    value: toggleOutputTableDisplay$ | async
+  } as toggleOutputTableDisplay"
+>
   <h1><a href (click)="toggleTableView($event)">Output Table</a></h1>
-  <div *ngIf="toggleOutputTableDisplay.value" [innerHTML]="outputTable$ | async">&nbsp;</div>
+  <div
+    *ngIf="toggleOutputTableDisplay.value"
+    [innerHTML]="outputTable$ | async"
+  >
+    &nbsp;
+  </div>
 </div>
