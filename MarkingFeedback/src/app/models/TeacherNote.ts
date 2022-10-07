@@ -1,4 +1,4 @@
-export interface TeacherNote {
+export interface ITeacherNote {
   type: string;
   content: string;
 }

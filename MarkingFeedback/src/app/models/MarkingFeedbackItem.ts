@@ -1,9 +1,9 @@
 import { Feedback } from "./Feedback";
-import { Rubric } from "./Rubric";
+import { IRubric } from "./Rubric";
 import { ScoringOperation } from "./Scoring/ScoringOperation";
 
-export interface MarkingFeedbackItem {
-  rubric: Rubric;
+export interface IMarkingFeedbackItem {
+  rubric: IRubric;
   feedbackList: Feedback[];
   id?: number;
   pointsAwarded?: number;

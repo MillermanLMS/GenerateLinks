@@ -9,15 +9,15 @@ import { Component } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { SnackService } from '../services/snack.service';
-import { MatSelectChange } from '@angular/material/select';
 import { EditorName } from '../models/enums/EditorName';
 import { ScoringTypeValue } from '../models/enums/ScoringTypeValue';
-import { MarkingFeedback } from '../models/MarkingFeedback';
-import { MarkingFeedbackItem } from '../models/MarkingFeedbackItem';
+import { IMarkingFeedback } from '../models/MarkingFeedback';
+import { IMarkingFeedbackItem } from '../models/MarkingFeedbackItem';
 import { ScoringOperation } from '../models/Scoring/ScoringOperation';
-import { TeacherNote } from '../models/TeacherNote';
+import { ITeacherNote } from '../models/TeacherNote';
+import { init, saveCleanMarkingFeedbackToLocalStorage } from '../shared/utility';
 
 // TODO: make a json file with all the users username and github accounts, so I can make their feedback files easier and import them quickly
 
@@ -58,7 +58,7 @@ export class MarkingFeedbackComponent {
   githubLinkArray: string[] = [];
   editorLink$ = new BehaviorSubject<string>('#');
   editorName$ = new BehaviorSubject<string>('');
-  tableValues$ = new BehaviorSubject<MarkingFeedback>({ markingFeedback: [] });
+  tableValues$ = new BehaviorSubject<IMarkingFeedback>({ markingFeedback: [] });
   overallScore$ = new BehaviorSubject<number>(0);
   outputTable$ = new BehaviorSubject<string>('');
   tableValuesJSON$ = new BehaviorSubject<[SafeResourceUrl, SafeResourceUrl]>([
@@ -67,7 +67,6 @@ export class MarkingFeedbackComponent {
   ]);
   // localStorageList$ = new BehaviorSubject<string[]>([]);
   expandedElement: any;
-  className$ = new BehaviorSubject<string>('');
   classRubricFileName: string = '';
   // triedBonus$ = new BehaviorSubject<boolean>(false);
   toggleOutputTableDisplay$ = new BehaviorSubject<boolean>(false);
@@ -84,12 +83,7 @@ export class MarkingFeedbackComponent {
       matColumnDef: 'pointsAwarded',
       header: 'Points Awarded',
     },
-    // {
-    //   matColumnDef: 'pointsAwarded',
-    //   header: 'Points Awarded',
-    // }
   ];
-
 
   validGithubLink = /((?:https:\/\/)?github.com\/?)/gi;
 
@@ -104,124 +98,39 @@ export class MarkingFeedbackComponent {
    */
   // githubBranchSelector = /(https:\/\/github.com\/([a-z\d](?:[a-z\d]|-(?=[a-z\d]))+))(?:\/([a-z\d](?:[a-z\d]|[-_](?=[a-z\d]))+)(?:\/tree\/)*([a-z\d](?:[a-z\d]|[-_](?=[a-z\d]))+)\/*.*)*/i;
 
-
   constructor(
     private sanitizer: DomSanitizer,
     private snack: SnackService,
     private http: HttpClient,
-    private route: ActivatedRoute,
-    private router: Router
+    private route: ActivatedRoute
   ) {
-    let assignmentNumber: string;
-    let editorName: string;
+    let evaluationName: string;
+    let className: string;
     this.route.params.subscribe((params) => {
-      this.className$.next(params['classname']);
-      assignmentNumber = params['assignment'];
-      editorName = params['editor'] || 'stackblitz';
+      className = params['classname'];
+      evaluationName = params['evaluation'];
       this.editorName$.next(
-        Object.values(EditorName)[
-        Object.keys(EditorName).indexOf(editorName)
-        ] as string
+        EditorName[(params['editor'] ?? 'stackblitz') as keyof typeof EditorName]
       );
       this.alwaysExpanded$.next(!!this.route.snapshot.params['expanded']);
-      if (isNaN(Number(assignmentNumber))) {
-        // lets me do Test1
-        this.classRubricFileName = `${this.className$.value}${assignmentNumber}`;
-      } else {
-        // used for all my assignments with standard names
-        this.classRubricFileName = `${this.className$.value}As${assignmentNumber}`;
-      }
+      this.classRubricFileName = `${className}${evaluationName}`;
 
       // this.populateLocalStorageDropdown();
-      this.init();
+      let markingFeedback = init(this.classRubricFileName);
+      this.snack.open(
+        'Local storage loaded: ' + this.classRubricFileName,
+        'Dismiss'
+      );
+      this.initTable(markingFeedback);
     });
   }
 
-  init(filename?: string): void {
-    console.log(filename);
-    let markingFeedback = JSON.parse(
-      localStorage.getItem(this.classRubricFileName) || '[]'
-    );
-    if (markingFeedback['markingFeedback']) {
-      (markingFeedback as MarkingFeedback).markingFeedback.forEach((mf) => {
-        mf['scoring'] = new ScoringOperation(mf['scoringType']);
-      });
-    }
-    if (filename) {
-      const filesMarkingFeedback = JSON.parse(
-        localStorage.getItem(filename) || '[]'
-      ) as MarkingFeedback;
-      markingFeedback.cheated = filesMarkingFeedback.cheated;
-      markingFeedback.triedBonus = filesMarkingFeedback.triedBonus;
-      if (filesMarkingFeedback.markingFeedback?.length) {
-        (markingFeedback.markingFeedback as MarkingFeedbackItem[]).forEach(
-          (mf, index) => {
-            mf.feedbackList = [
-              // using Set removes duplicate items when merging the two arrays
-              ...new Set([
-                ...mf.feedbackList,
-                ...filesMarkingFeedback.markingFeedback[index].feedbackList,
-              ]),
-            ];
-            mf.scoring = new ScoringOperation(
-              mf.scoringType ||
-              filesMarkingFeedback.markingFeedback[index].scoringType
-            );
-            mf.pointsAwarded =
-              filesMarkingFeedback.markingFeedback[index].pointsAwarded;
-          }
-        );
-      }
-      //  = [
-      //   ...markingFeedback,
-      //   JSON.parse(localStorage.getItem(filename) || '[]'),
-      // ];
-    }
 
-    // TODO: change over to using ngx-indexed-db instead of localstorage for student feedbacks
-    // https://github.com/assuncaocharles/ngx-indexed-db
-
-    // didn't get it from local storage
-    if (markingFeedback.length === 0) {
-      let fileLocation = `assets/${this.classRubricFileName}.json`;
-      this.http.get(fileLocation).subscribe((rubric) => {
-        this.snack.open('Loaded from file: ' + fileLocation, 'Dismiss');
-        markingFeedback = (
-          (rubric as any)['markingFeedbackList'] as MarkingFeedbackItem[]
-        ).map((mf, index) => {
-          mf.scoring = new ScoringOperation(mf.scoringType);
-          let defaultValues = {
-            pointsAwarded:
-              mf.scoring.operation == ScoringTypeValue.Subtraction
-                ? mf.rubric.score
-                : 0,
-            id: index,
-            bonus: false,
-          };
-          return {
-            ...defaultValues,
-            ...mf,
-          };
-        });
-        this.initTable({
-          markingFeedback: markingFeedback as MarkingFeedbackItem[],
-          teacherNotes: (rubric as any)['teacherNotes'] as TeacherNote[],
-        });
-      });
-      return;
-    }
-    this.snack.open(
-      'Local storage loaded: ' + this.classRubricFileName,
-      'Dismiss'
-    );
-    this.initTable(markingFeedback);
-  }
-
-  initTable(markingFeedback: MarkingFeedback): void {
+  initTable(markingFeedback: IMarkingFeedback): void {
     this.tableValues$.next(markingFeedback);
     this.generateTableJSON();
     this.overallScore$.next(
-      this.updateScore(markingFeedback as MarkingFeedback)
+      this.updateScore(markingFeedback as IMarkingFeedback)
     );
     this.generateStudentFriendlyTable();
   }
@@ -241,6 +150,7 @@ export class MarkingFeedbackComponent {
     this.overallScore$.next(this.updateScore());
     this.generateStudentFriendlyTable();
   }
+
   // bind so that clicking input highlights it
   // document.querySelectorAll(".highlight-on-click").forEach()
   inputGithub(value: string): void {
@@ -249,7 +159,7 @@ export class MarkingFeedbackComponent {
     }
     this.githubLink$.next(value.trim());
     value = value.replace(this.validGithubLink, '');
-    this.githubLinkArray = value.split("/").filter(v => v.trim().length);
+    this.githubLinkArray = value.split('/').filter((v) => v.trim().length);
 
     this.generateTableJSON();
     this.generateOnlineEditorLink();
@@ -259,7 +169,7 @@ export class MarkingFeedbackComponent {
 
   generateOnlineEditorLink(): void {
     // TODO: use octokit to make sure this link has the package.json in it
-    const usefulContent = this.githubLinkArray.join("/");
+    const usefulContent = this.githubLinkArray.join('/');
     switch (this.editorName$.value) {
       case EditorName.stackblitz: {
         this.editorLink$.next('https://stackblitz.com/github/' + usefulContent);
@@ -292,19 +202,19 @@ export class MarkingFeedbackComponent {
     this.generateStudentFriendlyTable();
   }
 
-  updateScore(mfl?: MarkingFeedback): number {
+  updateScore(mfl?: IMarkingFeedback): number {
     return this.tableValues$.value.cheated
       ? 0
       : (mfl?.markingFeedback || this.tableValues$.value.markingFeedback)
-        .map((mf) =>
-          !mf.bonus || (mf.bonus && this.tableValues$.value.triedBonus)
-            ? mf.pointsAwarded || 0
-            : 0
-        )
-        .reduce((v, a) => v + a, 0);
+          .map((mf) =>
+            !mf.bonus || (mf.bonus && this.tableValues$.value.triedBonus)
+              ? mf.pointsAwarded || 0
+              : 0
+          )
+          .reduce((v, a) => v + a, 0);
   }
 
-  calculateRubricItemScore(markingFeedbackItem: MarkingFeedbackItem): number {
+  calculateRubricItemScore(markingFeedbackItem: IMarkingFeedbackItem): number {
     return markingFeedbackItem.scoring.operate(
       markingFeedbackItem.feedbackList
         .map((f) => {
@@ -325,7 +235,7 @@ export class MarkingFeedbackComponent {
       ...this.tableValues$.value,
       markingFeedback: [...mfl],
     });
-    this.saveCleanMarkingFeedback();
+    saveCleanMarkingFeedbackToLocalStorage(this.classRubricFileName, this.tableValues$.value);
     this.generateStudentFriendlyTable();
   }
 
@@ -345,12 +255,12 @@ export class MarkingFeedbackComponent {
       ...this.tableValues$.value,
       markingFeedback: [...mfl],
     });
-    this.saveCleanMarkingFeedback();
+    saveCleanMarkingFeedbackToLocalStorage(this.classRubricFileName, this.tableValues$.value);
     this.generateStudentFriendlyTable();
   }
 
   saveJSON(): void {
-    this.saveCleanMarkingFeedback();
+    saveCleanMarkingFeedbackToLocalStorage(this.classRubricFileName, this.tableValues$.value);
     console.log('Saved Marking Feedback: ', this.tableValues$.value);
     this.generateTableJSON();
     this.generateStudentFriendlyTable();
@@ -359,37 +269,15 @@ export class MarkingFeedbackComponent {
       'Dismiss'
     );
   }
-  saveCleanMarkingFeedback(): void {
-    localStorage.setItem(
-      this.classRubricFileName,
-      JSON.stringify(this.cleanMarkingFeedback())
-    );
-  }
 
-  cleanMarkingFeedback(): MarkingFeedback {
-    return {
-      teacherNotes: this.tableValues$.value.teacherNotes,
-      markingFeedback: this.tableValues$.value.markingFeedback.map((mf) => {
-        return {
-          ...mf,
-          pointsAwarded: mf.scoring.defaultRubricScore(mf.rubric.score), // reset score
-          feedbackList: mf.feedbackList.map((f) => {
-            // uncheck feedbacks
-            return {
-              feedback: f.feedback,
-              deduction: f.deduction,
-              applied: false,
-            };
-          }),
-        };
-      }) as MarkingFeedbackItem[],
-    } as MarkingFeedback;
-  }
+
 
   getUserLocalStorage(): void {
     if (this.githubLinkArray.length) {
-      this.init(
-        `${this.classRubricFileName}_${this.githubLinkArray[0]}_${this.githubLinkArray[3] || "main"}`
+      init(this.classRubricFileName,
+        `${this.classRubricFileName}_${this.githubLinkArray[0]}_${
+          this.githubLinkArray[3] || 'main'
+        }`
       );
     }
   }
@@ -397,7 +285,9 @@ export class MarkingFeedbackComponent {
     const now = Date.now(); // save one anyway in case I need a reference
     let storageName = `${this.classRubricFileName}_Time-${now}_Score-${this.overallScore$.value}`;
     if (this.githubLinkArray.length) {
-      storageName = `${this.classRubricFileName}_${this.githubLinkArray[0]}_${this.githubLinkArray[3] || "main"}`;
+      storageName = `${this.classRubricFileName}_${this.githubLinkArray[0]}_${
+        this.githubLinkArray[3] || 'main'
+      }`;
     }
 
     localStorage.setItem(storageName, this.tableWithoutEmptyFeedbacks());
@@ -405,7 +295,7 @@ export class MarkingFeedbackComponent {
   }
 
   tableWithoutEmptyFeedbacks(): string {
-    let simplifiedTable: MarkingFeedback = JSON.parse(
+    let simplifiedTable: IMarkingFeedback = JSON.parse(
       JSON.stringify(this.tableValues$.value)
     );
     simplifiedTable.markingFeedback.forEach((mf) => {
@@ -432,21 +322,23 @@ export class MarkingFeedbackComponent {
   generateTableJSON(): void {
     let returnValue = '';
     if (this.githubLinkArray.length) {
-      returnValue = `${this.githubLinkArray[0]}_${this.githubLinkArray[3] || "main"}`;
+      returnValue = `${this.githubLinkArray[0]}_${
+        this.githubLinkArray[3] || 'main'
+      }`;
     }
     console.log(this.tableValues$.value);
     this.tableValuesJSON$.next([
       // first value is the normal json file
       this.sanitizer.bypassSecurityTrustResourceUrl(
         'data:application/json;charset=UTF-8,' +
-        encodeURIComponent(JSON.stringify(this.tableValues$.value))
+          encodeURIComponent(JSON.stringify(this.tableValues$.value))
       ),
       // second value is the student specific one
       this.sanitizer.bypassSecurityTrustResourceUrl(
         'data:application/json;charset=UTF-8,' +
-        encodeURIComponent(
-          JSON.stringify({ [returnValue]: this.tableValues$.value })
-        )
+          encodeURIComponent(
+            JSON.stringify({ [returnValue]: this.tableValues$.value })
+          )
       ),
     ]);
   }
@@ -455,7 +347,7 @@ export class MarkingFeedbackComponent {
     const githubLinkHeader = this.githubLink$.value
       ? `<h5>GitHub Link Marked:<br>${this.githubLink$.value}</h5>`
       : '';
-    const tableNoticeMessage = `<tr><th colspan="2">Please click the feedback bubble on your assignment to view the table in full</th></tr>`;
+    const tableNoticeMessage = `<tr><th colspan="2">Please click the feedback bubble on your evaluation to view the table in full</th></tr>`;
     const tableHeader = `<tr><th style="border-bottom: 1px solid #000;">Rubric Criteria</th><th style="border-bottom: 1px solid #000;">Score</th></tr>`;
     const overallScoreMessage = `<tr><td><strong>Total:</strong></td><td><strong>${this.overallScore$.value}</strong></td></tr>`;
     let tablerows = '';
@@ -475,8 +367,9 @@ export class MarkingFeedbackComponent {
           // if (tablerowsvalueWorths === '') {
           //   tablerowsvalueWorths = `<tr><td colspan="2">valueWorths: </td></tr>`;
           // }
-          tablerowsvalueWorths += `<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;${f.feedback
-            }</td><td>${mf.scoring.toString()}${f.deduction}</td></tr>`;
+          tablerowsvalueWorths += `<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;${
+            f.feedback
+          }</td><td>${mf.scoring.toString()}${f.deduction}</td></tr>`;
         }
       });
       tablerows += tablerowsvalueWorths;
@@ -508,5 +401,4 @@ export class MarkingFeedbackComponent {
     e.preventDefault();
     this.toggleOutputTableDisplay$.next(!this.toggleOutputTableDisplay$.value);
   }
-
 }

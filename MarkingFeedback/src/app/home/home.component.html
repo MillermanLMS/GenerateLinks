@@ -15,3 +15,32 @@
     </mat-form-field>
   </ng-container>
 </div>
+<div>
+  <h2>Enter the json of a new rubric here</h2>
+  <form>
+    <mat-form-field appearance="outline">
+      <mat-label>Class Name</mat-label>
+      <input
+        matInput
+        class="highlight-on-click"
+        placeholder="WEB601"
+        #classname
+      />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Assignment/Test Number</mat-label>
+      <input
+        matInput
+        class="highlight-on-click"
+        placeholder="As1"
+        #evaluation
+      />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>JSON Feedback Code</mat-label>
+      <textarea matInput></textarea>
+    </mat-form-field>
+
+    <button type="submit">Submit new rubric</button>
+  </form>
+</div>

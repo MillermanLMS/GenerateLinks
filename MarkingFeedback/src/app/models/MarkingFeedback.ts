@@ -1,9 +1,9 @@
-import { MarkingFeedbackItem } from "./MarkingFeedbackItem";
-import { TeacherNote } from "./TeacherNote";
+import { IMarkingFeedbackItem } from "./MarkingFeedbackItem";
+import { ITeacherNote } from "./TeacherNote";
 
-export interface MarkingFeedback {
-  markingFeedback: MarkingFeedbackItem[];
+export interface IMarkingFeedback {
+  markingFeedback: IMarkingFeedbackItem[];
   cheated?: boolean;
   triedBonus?: boolean;
-  teacherNotes?: TeacherNote[];
+  teacherNotes?: ITeacherNote[];
 }

@@ -6,32 +6,25 @@ import { MarkingFeedbackComponent } from './marking-feedback/marking-feedback.co
 import { MarkingSelectionComponent } from './marking-selection/marking-selection.component';
 
 const routes: Routes = [
-  // TODO: generate routes based on json that contains list of classes and assignment numbers.
-  // Give option to select class and assignment on home page
-  // {
-  //   path: '',
-  //   component: MarkingSelectionComponent,
-  //   pathMatch: 'full',
-  // },
-  // {
-  //   path: '',
-  //   redirectTo: '/WEB601/1',
-  //   pathMatch: 'full',
-  // },
+  // TODO: generate routes based on json that contains list of classes and evaluation numbers.
+  // Give option to select class and evaluation on home page
   {
     path: '',
-    component: HomeComponent
+    component: HomeComponent,
   },
   {
-    path: ':classname/:assignment', // c = class, a = assignment
+    // ex: WEB601/As1
+    path: ':classname/:evaluation', // c = class, a = evaluation
     component: MarkingFeedbackComponent,
   },
   {
-    path: ':classname/:assignment/:editor', // c = class, a = assignment
+    // ex: WEB601/As1/stackblitz
+    path: ':classname/:evaluation/:editor',
     component: MarkingFeedbackComponent,
   },
   {
-    path: ':classname/:assignment/:editor/:expanded', // c = class, a = assignment
+    // ex: WEB601/As1/stackblitz/true
+    path: ':classname/:evaluation/:editor/:expanded',
     component: MarkingFeedbackComponent,
   },
   {
@@ -42,6 +35,6 @@ const routes: Routes = [
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
 export class AppRoutingModule {}
