@@ -19,4 +19,6 @@ Secondary products to manage the project that will be used include:
 
 If you're a student of mine and you're interested gaining some experience in agile bug/feature workflows, working more in depth with GitHub, and learning some more advanced angular programming, definitely let me know!
 
+You can see it running [here](https://marking.millerman.ca)
+
 -Alex Millerman
