@@ -1,5 +1,5 @@
 import { ScoringTypeValue } from '../models/enums/ScoringTypeValue';
-import { IMarkingFeedback } from '../models/MarkingFeedback';
+import { IMarkingFeedback, MarkingFeedback } from '../models/MarkingFeedback';
 import { IMarkingFeedbackItem } from '../models/MarkingFeedbackItem';
 import { ScoringOperation } from '../models/Scoring/ScoringOperation';
 import { ITeacherNote } from '../models/TeacherNote';
@@ -89,15 +89,13 @@ export function init(
 export function createLocalStorageMarkingFeedback(
   className: string,
   evaluationName: string,
-  rubric: string
+  markingFeedback: MarkingFeedback
 ): boolean {
   // let fileLocation = `assets/${this.classRubricFileName}.json`;
   // this.http.get(fileLocation).subscribe((rubric) => {
   //   this.snack.open('Loaded from file: ' + fileLocation, 'Dismiss');
   let classRubricFileName = `${className}${evaluationName}`;
-  let markingFeedbackItems = (
-    (rubric as any)['markingFeedbackList'] as IMarkingFeedbackItem[]
-  ).map((mf, index) => {
+  markingFeedback.markingFeedback.map((mf, index) => {
     mf.scoring = new ScoringOperation(mf.scoringType);
     let defaultValues = {
       pointsAwarded:
@@ -112,11 +110,6 @@ export function createLocalStorageMarkingFeedback(
       ...mf,
     };
   });
-  let markingFeedback = {
-    markingFeedback: markingFeedbackItems as IMarkingFeedbackItem[],
-    teacherNotes: (rubric as any)['teacherNotes'] as ITeacherNote[],
-  };
-
   // this.initTable({
   //   markingFeedback: markingFeedback as MarkingFeedbackItem[],
   //   teacherNotes: (rubric as any)['teacherNotes'] as TeacherNote[],
@@ -135,7 +128,10 @@ export function createLocalStorageMarkingFeedback(
  * @param classRubricFileName
  * @param markingFeedback
  */
-export function saveCleanMarkingFeedbackToLocalStorage(classRubricFileName: string, markingFeedback: IMarkingFeedback): void {
+export function saveCleanMarkingFeedbackToLocalStorage(
+  classRubricFileName: string,
+  markingFeedback: IMarkingFeedback
+): void {
   localStorage.setItem(
     classRubricFileName,
     JSON.stringify(cleanMarkingFeedback(markingFeedback))

@@ -6,41 +6,28 @@
       <mat-label>Select an option</mat-label>
       <mat-select (selectionChange)="changeMarkingPage($event)">
         <mat-option>None</mat-option>
-        <mat-option
-          *ngFor="let rubricName of localStorageList"
-          [value]="rubricName"
-          >{{ rubricName }}</mat-option
-        >
+        <mat-option *ngFor="let rubricName of localStorageList" [value]="rubricName">{{ rubricName }}</mat-option>
       </mat-select>
     </mat-form-field>
   </ng-container>
 </div>
 <div>
   <h2>Enter the json of a new rubric here</h2>
-  <form>
+  <form [formGroup]="assessmentForm" (ngSubmit)="onSubmit()">
     <mat-form-field appearance="outline">
       <mat-label>Class Name</mat-label>
-      <input
-        matInput
-        class="highlight-on-click"
-        placeholder="WEB601"
-        #classname
-      />
+      <input matInput class="highlight-on-click" placeholder="WEB601" id="className" formControlName="className" />
     </mat-form-field>
     <mat-form-field appearance="outline">
       <mat-label>Assignment/Test Number</mat-label>
-      <input
-        matInput
-        class="highlight-on-click"
-        placeholder="As1"
-        #evaluation
-      />
+      <input matInput class="highlight-on-click" placeholder="As1" id="assessmentNumber"
+        formControlName="assessmentNumber" />
     </mat-form-field>
     <mat-form-field appearance="outline">
       <mat-label>JSON Feedback Code</mat-label>
-      <textarea matInput></textarea>
+      <textarea matInput id="jsonCode" formControlName="jsonCode"></textarea>
     </mat-form-field>
 
-    <button type="submit">Submit new rubric</button>
+    <button type="submit" [disabled]="!assessmentForm.valid">Submit new rubric</button>
   </form>
 </div>

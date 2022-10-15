@@ -4,7 +4,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
@@ -23,13 +23,20 @@ import { MarkingSelectionComponent } from './marking-selection/marking-selection
 import { HomeComponent } from './home/home.component';
 
 @NgModule({
-  declarations: [AppComponent, ColumnsPipe, MarkingFeedbackComponent, MarkingSelectionComponent, HomeComponent],
+  declarations: [
+    AppComponent,
+    ColumnsPipe,
+    MarkingFeedbackComponent,
+    MarkingSelectionComponent,
+    HomeComponent,
+  ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     MatIconModule,
     FormsModule,
+    ReactiveFormsModule,
     MatTableModule,
     MatFormFieldModule,
     MatInputModule,
@@ -39,9 +46,9 @@ import { HomeComponent } from './home/home.component';
     MatSelectModule,
     MatSnackBarModule,
     HttpClientModule,
-    MatMenuModule
+    MatMenuModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}
