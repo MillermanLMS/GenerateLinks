@@ -1,10 +1,9 @@
 import { Component } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, zip } from 'rxjs';
 import { MatSelectChange } from '@angular/material/select';
 import { Router } from '@angular/router';
 import { NonNullableFormBuilder, Validators } from '@angular/forms';
-import { IMarkingFeedback, MarkingFeedback } from '../models/MarkingFeedback';
-import { createLocalStorageMarkingFeedback } from '../shared/utility';
+import { MarkingFeedback } from '../models/MarkingFeedback';
 
 @Component({
   selector: 'app-home',
@@ -72,10 +71,13 @@ export class HomeComponent {
     //     (this.assessmentForm.controls['jsonCode'] as Object) as IMarkingFeedback
     //   )
     // ) {
-    createLocalStorageMarkingFeedback(
+    let mf = new MarkingFeedback(
+      undefined,
+      this.assessmentForm.controls['jsonCode'].value
+    );
+    mf.createLocalStorageMarkingFeedback(
       this.assessmentForm.controls['className'].value,
-      this.assessmentForm.controls['assessmentNumber'].value,
-      new MarkingFeedback(this.assessmentForm.controls['jsonCode'].value)
+      this.assessmentForm.controls['assessmentNumber'].value
     );
     // }
   }

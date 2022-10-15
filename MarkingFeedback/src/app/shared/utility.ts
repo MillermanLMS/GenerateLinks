@@ -18,7 +18,7 @@ import { ITeacherNote } from '../models/TeacherNote';
 export function init(
   classRubricFileName: string,
   studentRubricFileName: string = ''
-): any {
+): MarkingFeedback | undefined {
   let markingFeedback: IMarkingFeedback;
   let studentMarkingFeedback: IMarkingFeedback;
 
@@ -75,92 +75,7 @@ export function init(
         }
       });
     }
-    return markingFeedback;
+    return new MarkingFeedback(markingFeedback);
   }
   return;
-}
-/**
- * didn't get it from local storage
- * @param className
- * @param evaluationName
- * @param rubric
- * @returns
- */
-export function createLocalStorageMarkingFeedback(
-  className: string,
-  evaluationName: string,
-  markingFeedback: MarkingFeedback
-): boolean {
-  // let fileLocation = `assets/${this.classRubricFileName}.json`;
-  // this.http.get(fileLocation).subscribe((rubric) => {
-  //   this.snack.open('Loaded from file: ' + fileLocation, 'Dismiss');
-  let classRubricFileName = `${className}${evaluationName}`;
-  markingFeedback.markingFeedback.map((mf, index) => {
-    mf.scoring = new ScoringOperation(mf.scoringType);
-    let defaultValues = {
-      pointsAwarded:
-        mf.scoring.operation == ScoringTypeValue.Subtraction
-          ? mf.rubric.score
-          : 0,
-      id: index,
-      bonus: false,
-    };
-    return {
-      ...defaultValues,
-      ...mf,
-    };
-  });
-  // this.initTable({
-  //   markingFeedback: markingFeedback as MarkingFeedbackItem[],
-  //   teacherNotes: (rubric as any)['teacherNotes'] as TeacherNote[],
-  // });
-  // });
-  localStorage.setItem(
-    classRubricFileName,
-    JSON.stringify(cleanMarkingFeedback(markingFeedback))
-  );
-
-  return true;
-}
-
-/**
- *
- * @param classRubricFileName
- * @param markingFeedback
- */
-export function saveCleanMarkingFeedbackToLocalStorage(
-  classRubricFileName: string,
-  markingFeedback: IMarkingFeedback
-): void {
-  localStorage.setItem(
-    classRubricFileName,
-    JSON.stringify(cleanMarkingFeedback(markingFeedback))
-  );
-}
-
-/**
- *
- * @param markingFeedback
- * @returns
- */
-export function cleanMarkingFeedback(
-  markingFeedback: IMarkingFeedback
-): IMarkingFeedback {
-  return {
-    teacherNotes: markingFeedback.teacherNotes,
-    markingFeedback: markingFeedback.markingFeedback.map((mf) => {
-      return {
-        ...mf,
-        pointsAwarded: mf.scoring.defaultRubricScore(mf.rubric.score), // reset score
-        feedbackList: mf.feedbackList.map((f) => {
-          // uncheck feedbacks
-          return {
-            feedback: f.feedback,
-            deduction: f.deduction,
-            applied: false,
-          };
-        }),
-      };
-    }) as IMarkingFeedbackItem[],
-  } as IMarkingFeedback;
 }

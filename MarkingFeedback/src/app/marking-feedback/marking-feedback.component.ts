@@ -12,12 +12,9 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { SnackService } from '../services/snack.service';
 import { EditorName } from '../models/enums/EditorName';
-import { ScoringTypeValue } from '../models/enums/ScoringTypeValue';
-import { IMarkingFeedback } from '../models/MarkingFeedback';
+import { IMarkingFeedback, MarkingFeedback } from '../models/MarkingFeedback';
 import { IMarkingFeedbackItem } from '../models/MarkingFeedbackItem';
-import { ScoringOperation } from '../models/Scoring/ScoringOperation';
-import { ITeacherNote } from '../models/TeacherNote';
-import { init, saveCleanMarkingFeedbackToLocalStorage } from '../shared/utility';
+import { init } from '../shared/utility';
 
 // TODO: make a json file with all the users username and github accounts, so I can make their feedback files easier and import them quickly
 
@@ -58,7 +55,7 @@ export class MarkingFeedbackComponent {
   githubLinkArray: string[] = [];
   editorLink$ = new BehaviorSubject<string>('#');
   editorName$ = new BehaviorSubject<string>('');
-  tableValues$ = new BehaviorSubject<IMarkingFeedback>({ markingFeedback: [] });
+  tableValues$ = new BehaviorSubject<MarkingFeedback | null>(null);
   overallScore$ = new BehaviorSubject<number>(0);
   outputTable$ = new BehaviorSubject<string>('');
   tableValuesJSON$ = new BehaviorSubject<[SafeResourceUrl, SafeResourceUrl]>([
@@ -110,43 +107,40 @@ export class MarkingFeedbackComponent {
       className = params['classname'];
       evaluationName = params['evaluation'];
       this.editorName$.next(
-        EditorName[(params['editor'] ?? 'stackblitz') as keyof typeof EditorName]
+        EditorName[
+          (params['editor'] ?? 'stackblitz') as keyof typeof EditorName
+        ]
       );
       this.alwaysExpanded$.next(!!this.route.snapshot.params['expanded']);
       this.classRubricFileName = `${className}${evaluationName}`;
 
       // this.populateLocalStorageDropdown();
       let markingFeedback = init(this.classRubricFileName);
-      this.snack.open(
-        'Local storage loaded: ' + this.classRubricFileName,
-        'Dismiss'
-      );
-      this.initTable(markingFeedback);
+      if (markingFeedback) {
+        this.snack.open(
+          'Local storage loaded: ' + this.classRubricFileName,
+          'Dismiss'
+        );
+        this.initTable(markingFeedback);
+      }
     });
   }
 
-
-  initTable(markingFeedback: IMarkingFeedback): void {
+  initTable(markingFeedback: MarkingFeedback): void {
     this.tableValues$.next(markingFeedback);
     this.generateTableJSON();
-    this.overallScore$.next(
-      this.updateScore(markingFeedback as IMarkingFeedback)
-    );
+    this.overallScore$.next(this.updateScore());
     this.generateStudentFriendlyTable();
   }
   toggleBonus(eventData: boolean) {
-    this.tableValues$.next({
-      ...this.tableValues$.value,
-      triedBonus: eventData,
-    });
+    this.tableValues$.value?.toggleBonus(eventData);
+    this.tableValues$.next(this.tableValues$.value);
     this.overallScore$.next(this.updateScore());
     this.generateStudentFriendlyTable();
   }
   toggleCheated(eventData: boolean) {
-    this.tableValues$.next({
-      ...this.tableValues$.value,
-      cheated: eventData,
-    });
+    this.tableValues$.value?.toggleAI(eventData);
+    this.tableValues$.next(this.tableValues$.value);
     this.overallScore$.next(this.updateScore());
     this.generateStudentFriendlyTable();
   }
@@ -186,32 +180,16 @@ export class MarkingFeedbackComponent {
     }
   }
 
-  toggleValueWorth(row: any): void {
-    let mfl = [...this.tableValues$.value.markingFeedback];
-    mfl[row.id].pointsAwarded = this.calculateRubricItemScore(mfl[row.id]);
-    this.overallScore$.next(
-      this.updateScore({
-        markingFeedback: mfl,
-        cheated: this.tableValues$.value.cheated,
-      })
-    );
-    this.tableValues$.next({
-      ...this.tableValues$.value,
-      markingFeedback: [...mfl],
-    });
+  toggleValueWorth(rowIndex: number): void {
+    this.tableValues$.value?.updatePointsAwarded(rowIndex);
+    this.overallScore$.next(this.updateScore());
+
+    this.tableValues$.next(this.tableValues$.value);
     this.generateStudentFriendlyTable();
   }
 
-  updateScore(mfl?: IMarkingFeedback): number {
-    return this.tableValues$.value.cheated
-      ? 0
-      : (mfl?.markingFeedback || this.tableValues$.value.markingFeedback)
-          .map((mf) =>
-            !mf.bonus || (mf.bonus && this.tableValues$.value.triedBonus)
-              ? mf.pointsAwarded || 0
-              : 0
-          )
-          .reduce((v, a) => v + a, 0);
+  updateScore(): number {
+    return this.tableValues$.value?.total || 0;
   }
 
   calculateRubricItemScore(markingFeedbackItem: IMarkingFeedbackItem): number {
@@ -226,41 +204,30 @@ export class MarkingFeedbackComponent {
   }
 
   addFeedback(row: any, feedback: string, deduction: string): void {
-    let mfl = [...this.tableValues$.value.markingFeedback];
-    mfl[row.id].feedbackList.push({
+    this.tableValues$.value?.updateFeedback(row.id, {
       feedback,
       deduction: Number(deduction || '0.5'),
     });
-    this.tableValues$.next({
-      ...this.tableValues$.value,
-      markingFeedback: [...mfl],
-    });
-    saveCleanMarkingFeedbackToLocalStorage(this.classRubricFileName, this.tableValues$.value);
+
+    this.tableValues$.next(this.tableValues$.value);
+    this.tableValues$.value?.saveCleanMarkingFeedbackToLocalStorage(
+      this.classRubricFileName
+    );
     this.generateStudentFriendlyTable();
   }
 
   removeFeedback(row: any, index: number): void {
     // event.stopPropogation();
     console.log('remove');
-    let mfl = [...this.tableValues$.value.markingFeedback];
-    mfl[row.id].feedbackList.splice(index, 1);
-    mfl[row.id].pointsAwarded = this.calculateRubricItemScore(mfl[row.id]);
-    this.overallScore$.next(
-      this.updateScore({
-        markingFeedback: mfl,
-        cheated: this.tableValues$.value.cheated,
-      })
-    );
-    this.tableValues$.next({
-      ...this.tableValues$.value,
-      markingFeedback: [...mfl],
-    });
-    saveCleanMarkingFeedbackToLocalStorage(this.classRubricFileName, this.tableValues$.value);
+    this.tableValues$.value?.removeFeedback(row, index);
+    this.overallScore$.next(this.updateScore());
+    this.tableValues$.next(this.tableValues$.value);
+    this.tableValues$.value?.saveCleanMarkingFeedbackToLocalStorage();
     this.generateStudentFriendlyTable();
   }
 
   saveJSON(): void {
-    saveCleanMarkingFeedbackToLocalStorage(this.classRubricFileName, this.tableValues$.value);
+    this.tableValues$.value?.saveCleanMarkingFeedbackToLocalStorage();
     console.log('Saved Marking Feedback: ', this.tableValues$.value);
     this.generateTableJSON();
     this.generateStudentFriendlyTable();
@@ -270,11 +237,10 @@ export class MarkingFeedbackComponent {
     );
   }
 
-
-
   getUserLocalStorage(): void {
     if (this.githubLinkArray.length) {
-      init(this.classRubricFileName,
+      init(
+        this.classRubricFileName,
         `${this.classRubricFileName}_${this.githubLinkArray[0]}_${
           this.githubLinkArray[3] || 'main'
         }`
@@ -353,9 +319,9 @@ export class MarkingFeedbackComponent {
     let tablerows = '';
     let tablerowsvalueWorths = '';
     let cheaterHeader = '';
-    this.tableValues$.value.markingFeedback.forEach((mf) => {
+    this.tableValues$.value?.markingFeedback.forEach((mf) => {
       // console.log("feedback item", mf);
-      if (mf.bonus && !this.tableValues$.value.triedBonus) {
+      if (mf.bonus && !this.tableValues$.value?.triedBonus) {
         // if bonus feedback but they didn't try bonus, skip this one
         return;
       }
@@ -375,7 +341,7 @@ export class MarkingFeedbackComponent {
       tablerows += tablerowsvalueWorths;
       tablerowsvalueWorths = '';
     });
-    if (this.tableValues$.value.cheated) {
+    if (this.tableValues$.value?.cheated) {
       cheaterHeader = `<h2>Please come see me in the lab</h2>`;
     }
     this.outputTable$.next(
